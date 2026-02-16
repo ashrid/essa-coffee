@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Earthy/modern theme: cream backgrounds, forest greens */
+    --background: 40 50% 96%; /* cream-50: #fdf8f0 */
+    --foreground: 155 67% 8%; /* forest-900: #0a1f16 */
+
+    --card: 40 50% 96%;
+    --card-foreground: 155 67% 8%;
+
+    --popover: 40 50% 96%;
+    --popover-foreground: 155 67% 8%;
+
+    --primary: 155 43% 18%; /* forest-600: #1b4332 */
+    --primary-foreground: 40 50% 96%; /* cream-50: #fdf8f0 */
+
+    --secondary: 120 18% 88%; /* sage-100: #e8f0e8 */
+    --secondary-foreground: 155 43% 18%;
+
+    --muted: 120 18% 88%;
+    --muted-foreground: 155 30% 35%;
+
+    --accent: 120 18% 83%; /* sage-200: #c8d8c8 */
+    --accent-foreground: 155 43% 18%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 40 50% 96%;
+
+    --border: 35 30% 84%; /* bark-100: #e8dcc8 */
+    --input: 35 30% 84%;
+    --ring: 155 43% 18%;
+
+    --radius: 0.5rem;
+
+    --chart-1: 155 43% 18%;
+    --chart-2: 120 30% 53%;
+    --chart-3: 120 18% 65%;
+    --chart-4: 35 42% 40%;
+    --chart-5: 35 30% 78%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter, 'Inter', sans-serif);
+  }
+}
