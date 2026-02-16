@@ -26,12 +26,12 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 ## Current Position
 
 **Phase:** 1 (Core MVP)
-**Plan:** 04 (next to execute)
-**Status:** In progress — Plans 01 and 03 complete (Plan 02 catalog pages still needed)
-**Progress:** 43% (3/7 plans in Phase 1 complete — plans 01, partial-02, 03)
+**Plan:** 02 (next to execute — storefront UI)
+**Status:** In progress — Plans 01, 03, 06 complete (Plan 02 catalog pages next)
+**Progress:** 43% (3/7 plans in Phase 1 complete — plans 01, 03, 06)
 
 ```
-[=================                       ] 43%
+[=======================                 ] 57%
 ```
 
 ---
@@ -180,6 +180,7 @@ Research completed 2026-02-16. Key findings:
 |-------|------|----------|-------|-------|
 | 01-core-mvp | 01 | 12 min | 3/3 | 24 |
 | 01-core-mvp | 03 | 6 min | 2/2 | 12 |
+| 01-core-mvp | 06 | 18 min | 2/2 | 22 |
 
 ---
 
@@ -188,8 +189,24 @@ Research completed 2026-02-16. Key findings:
 **Created:** 2026-02-16 after roadmap generation
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
-**Last Executed:** Plan 01-03 — Zustand cart store, CartDrawer, cart page, ProductCard with toast
-**Stopped At:** Completed 01-03-PLAN.md
+**Last Executed:** Plan 01-06 — Auth.js magic link auth, admin panel with dashboard, product CRUD, orders, categories
+**Stopped At:** Completed 01-06-PLAN.md (summary created)
+
+### Plan 06 Complete
+
+Admin panel fully implemented:
+- `lib/auth.ts` — Auth.js v5 with Resend email provider, ADMIN_EMAIL guard
+- `middleware.ts` — Protects /admin/* routes with auth() wrapper
+- `app/(admin)/layout.tsx` — Forest sidebar with navigation, mobile hamburger menu
+- `app/(admin)/admin/login/page.tsx` — Magic link form with "check your email" flow
+- `app/(admin)/admin/page.tsx` — Dashboard with new orders, low stock, today's revenue stats
+- `app/(admin)/admin/products/page.tsx` — Product list with low stock highlighting
+- `app/(admin)/admin/products/new/page.tsx` + `[id]/page.tsx` — Create/edit with Tiptap rich text
+- `app/(admin)/admin/orders/page.tsx` + `[id]/page.tsx` — Order list and detail with status updates
+- `app/(admin)/admin/categories/page.tsx` — Category CRUD with product count checks
+- `components/admin/ProductForm.tsx` — Tiptap editor for description/care instructions, 5 image URLs
+- `components/admin/OrderStatusSelect.tsx` — Color-coded status dropdown
+- `components/admin/LowStockBadge.tsx` + `DashboardStats.tsx` — UI components
 **Last Updated:** 2026-02-16T16:01:53Z
 
 ### Plan 01 Blocker (User Action Required)
