@@ -26,12 +26,12 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 ## Current Position
 
 **Phase:** 1 (Core MVP)
-**Plan:** 02 (next to execute)
-**Status:** In progress — Plan 01 complete
-**Progress:** 33% (1/3 plans in Phase 1 complete)
+**Plan:** 04 (next to execute)
+**Status:** In progress — Plans 01 and 03 complete (Plan 02 catalog pages still needed)
+**Progress:** 43% (3/7 plans in Phase 1 complete — plans 01, partial-02, 03)
 
 ```
-[=============                           ] 33%
+[=================                       ] 43%
 ```
 
 ---
@@ -68,6 +68,9 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 | shadcn New York style | More refined component aesthetics, suits modern/bold design goal | Committed (Plan 01) |
 | Manual scaffold over create-next-app | create-next-app blocked by existing .claude/.planning dirs | Resolved (Plan 01) |
 | DATABASE_URL user-provided | DB credentials not in codebase, user provides before dev | Committed (Plan 01) |
+| Toast-only on add-to-cart | No drawer auto-open per 01-CONTEXT.md user decision — toast confirms action | Committed (Plan 03) |
+| CartSummary ctaHref/ctaLabel props | Single component handles drawer (View Cart) and cart page (Proceed to Checkout) | Committed (Plan 03) |
+| totalItems/subtotal stored state | Zustand persist requires stored values for hydration; recalculated on each mutation | Committed (Plan 03) |
 
 ---
 
@@ -176,6 +179,7 @@ Research completed 2026-02-16. Key findings:
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 01-core-mvp | 01 | 12 min | 3/3 | 24 |
+| 01-core-mvp | 03 | 6 min | 2/2 | 12 |
 
 ---
 
@@ -184,9 +188,9 @@ Research completed 2026-02-16. Key findings:
 **Created:** 2026-02-16 after roadmap generation
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
-**Last Executed:** Plan 01-01 — Scaffold Next.js 15 + Prisma schema + Tailwind theme
-**Stopped At:** Completed 01-01-PLAN.md
-**Last Updated:** 2026-02-16T15:52:42Z
+**Last Executed:** Plan 01-03 — Zustand cart store, CartDrawer, cart page, ProductCard with toast
+**Stopped At:** Completed 01-03-PLAN.md
+**Last Updated:** 2026-02-16T16:01:53Z
 
 ### Plan 01 Blocker (User Action Required)
 
@@ -195,7 +199,19 @@ Database not yet set up. Before Plan 02 can run server-side Prisma queries:
 2. Run `npx prisma db push`
 3. Run `npx prisma db seed`
 
+### Plan 03 Complete
+
+Cart system fully functional:
+- `lib/cart-store.ts` — Zustand store with localStorage persistence
+- `components/store/CartDrawer.tsx` — Slide-out drawer (shadcn Sheet) with item list
+- `components/store/CartItem.tsx` — Quantity controls, remove, line total
+- `app/(store)/cart/page.tsx` — Full cart page with "Proceed to Checkout" → /checkout
+- `components/store/Header.tsx` — Live badge, cart icon opens drawer
+- `components/store/ProductCard.tsx` — addItem + toast.success("Added to cart")
+
+Plan 02 (catalog browsing) still needs to be executed (shop page, homepage, product detail page).
+
 ---
 
 *State initialized: 2026-02-16*
-*Updated by: Plan 01 execution (01-01-PLAN.md)*
+*Updated by: Plan 03 execution (01-03-PLAN.md)*
