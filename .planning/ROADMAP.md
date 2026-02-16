@@ -42,7 +42,16 @@
 9. **Store displays pickup location and hours** — Customer sees pickup location, hours, and directions prominently on storefront and checkout
 10. **Store is mobile-responsive** — Store renders correctly and is fully usable on phone, tablet, and desktop with touch targets ≥48px
 
-**Plans:** TBD
+**Plans:** 7 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffold: Next.js 15, Prisma schema, Tailwind earthy theme, shadcn/ui, seed data
+- [ ] 01-02-PLAN.md — Storefront UI: homepage, catalog grid, sidebar filters, search, product detail, pickup info
+- [ ] 01-03-PLAN.md — Cart system: Zustand store, cart drawer, cart page with quantity controls
+- [ ] 01-04-PLAN.md — Checkout + payments: 2-step checkout form, Stripe Checkout, pay-on-pickup, webhook, confirmation page
+- [ ] 01-05-PLAN.md — Email: React Email templates, Resend integration, customer + admin notifications
+- [ ] 01-06-PLAN.md — Admin panel: magic link auth, dashboard, product/order/category CRUD, inventory management
+- [ ] 01-07-PLAN.md — Human verification of complete Phase 1 MVP
 
 ---
 
