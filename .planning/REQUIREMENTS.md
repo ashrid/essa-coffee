@@ -74,13 +74,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| CAT-01 | Phase 1 | Pending |
+| CAT-02 | Phase 1 | Pending |
+| CAT-03 | Phase 1 | Pending |
+| CAT-04 | Phase 1 | Pending |
+| CAT-05 | Phase 1 | Pending |
+| SHOP-01 | Phase 1 | Pending |
+| SHOP-02 | Phase 1 | Pending |
+| SHOP-03 | Phase 1 | Pending |
+| SHOP-04 | Phase 1 | Pending |
+| SHOP-05 | Phase 1 | Pending |
+| SHOP-06 | Phase 1 | Pending |
+| ADM-01 | Phase 1 | Pending |
+| ADM-02 | Phase 1 | Pending |
+| ADM-03 | Phase 1 | Pending |
+| ADM-04 | Phase 1 | Pending |
+| ADM-05 | Phase 1 | Pending |
+| ADM-06 | Phase 1 | Pending |
+| DSN-01 | Phase 1 | Pending |
+| DSN-02 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- v1 requirements: 19 total
+- Mapped to phases: 19 ✓
+- Unmapped: 0 ✓
 
 ---
+
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after initial definition*
+*Traceability updated: 2026-02-16 (roadmap creation)*
