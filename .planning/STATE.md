@@ -26,12 +26,12 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 ## Current Position
 
 **Phase:** 1 (Core MVP)
-**Plan:** 03 (next to execute — checkout flow)
-**Status:** In progress — Plans 01, 02, 03, 06 complete
-**Progress:** 57% (4/7 plans in Phase 1 complete)
+**Plan:** 07 (next to execute — final polish)
+**Status:** In progress — Plans 01, 02, 03, 04, 05, 06 complete
+**Progress:** 86% (6/7 plans in Phase 1 complete)
 
 ```
-[=============================           ] 71%
+[========================================] 86%
 ```
 
 ---
@@ -61,6 +61,11 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 | Pickup-only for v1 | Simplifies fulfillment, shipping added only if validated | Committed |
 | Guest checkout (no accounts) | Reduces friction, sufficient for solo owner | Committed |
 | Stripe for payments | PCI compliance handled by Stripe, webhooks, proven | Committed |
+| Stripe Checkout hosted page | Never custom payment form - PCI compliance | Committed (Plan 04) |
+| Serializable transactions | Prevents overselling during concurrent checkouts | Committed (Plan 04) |
+| Webhook idempotency | stripeSessionId check prevents duplicate orders | Committed (Plan 04) |
+| Non-blocking email sending | Promise.allSettled prevents email failures from blocking orders | Committed (Plan 05) |
+| Email failure isolation | try/catch wrappers ensure order creation always succeeds | Committed (Plan 05) |
 | Minimal admin v1 | Owner needs list orders + change status, nothing more | Committed |
 | Mobile-responsive from day 1 | No separate mobile build, responsive design required | Committed |
 | PostreSQL + Prisma | ACID transactions prevent overselling, type-safe ORM | Committed |
@@ -184,6 +189,8 @@ Research completed 2026-02-16. Key findings:
 | 01-core-mvp | 01 | 12 min | 3/3 | 24 |
 | 01-core-mvp | 02 | 25 min | 3/3 | 13 |
 | 01-core-mvp | 03 | 6 min | 2/2 | 12 |
+| 01-core-mvp | 04 | 18 min | 2/2 | 9 |
+| 01-core-mvp | 05 | 6 min | 2/2 | 5 |
 | 01-core-mvp | 06 | 18 min | 2/2 | 22 |
 
 ---
@@ -193,8 +200,8 @@ Research completed 2026-02-16. Key findings:
 **Created:** 2026-02-16 after roadmap generation
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
-**Last Executed:** Plan 01-02 — Storefront UI with homepage, shop page, product detail, ISR
-**Stopped At:** Completed 01-02-PLAN.md (summary created)
+**Last Executed:** Plan 01-05 — Transactional email system with Resend and React Email
+**Stopped At:** Completed 01-05-PLAN.md (summary created)
 
 ### Plan 06 Complete
 
@@ -243,4 +250,17 @@ Plan 02 (catalog browsing) still needs to be executed (shop page, homepage, prod
 ---
 
 *State initialized: 2026-02-16*
-*Updated by: Plan 02 execution (01-02-PLAN.md)*
+*Updated by: Plan 05 execution (01-05-PLAN.md)*
+
+### Plan 04 Complete
+
+Checkout flow with Stripe integration:
+- `lib/stripe.ts` — Stripe client singleton
+- `lib/orders.ts` — Shared `createOrderAtomically` with Serializable transactions
+- `app/api/checkout/route.ts` — POST endpoint for STRIPE and PAY_ON_PICKUP
+- `app/api/webhook/route.ts` — Stripe webhook with signature verification and idempotency
+- `components/checkout/CheckoutStepContact.tsx` — Step 1 contact form with validation
+- `components/checkout/CheckoutStepPayment.tsx` — Step 2 payment selection
+- `app/(store)/checkout/page.tsx` — 2-step checkout flow
+- `app/(store)/order-confirmation/page.tsx` — Order confirmation page
+**Last Updated:** 2026-02-17T15:54:05Z
