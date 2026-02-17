@@ -4,6 +4,11 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { createOrderAtomically } from "@/lib/orders";
 import { checkoutContactSchema } from "@/lib/validators";
+import {
+  sendOrderConfirmation,
+  sendAdminNewOrderNotification,
+  OrderWithItems,
+} from "@/lib/email";
 
 const checkoutSchema = checkoutContactSchema.merge(
   z.object({
@@ -58,6 +63,24 @@ export async function POST(request: NextRequest) {
         { guestName, guestEmail, guestPhone, guestNotes, paymentMethod, items },
         priceSnapshot
       );
+
+      // Fetch full order with items for email
+      const orderWithItems = (await prisma.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: {
+          items: {
+            include: {
+              product: { select: { name: true } },
+            },
+          },
+        },
+      })) as OrderWithItems;
+
+      // Send emails (non-blocking - don't await, catch errors)
+      Promise.allSettled([
+        sendOrderConfirmation(orderWithItems),
+        sendAdminNewOrderNotification(orderWithItems),
+      ]).catch(console.error);
 
       return NextResponse.json({
         success: true,

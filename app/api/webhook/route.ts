@@ -3,6 +3,11 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { createOrderAtomically } from "@/lib/orders";
+import {
+  sendOrderConfirmation,
+  sendAdminNewOrderNotification,
+  OrderWithItems,
+} from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -75,7 +80,23 @@ export async function POST(request: NextRequest) {
 
       console.log("Order created from webhook:", order.orderNumber);
 
-      // TODO: Send confirmation email (Plan 05)
+      // Fetch full order with items for email
+      const orderWithItems = (await prisma.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: {
+          items: {
+            include: {
+              product: { select: { name: true } },
+            },
+          },
+        },
+      })) as OrderWithItems;
+
+      // Send emails (non-blocking - don't await, catch errors)
+      Promise.allSettled([
+        sendOrderConfirmation(orderWithItems),
+        sendAdminNewOrderNotification(orderWithItems),
+      ]).catch(console.error);
     } catch (error) {
       console.error("Failed to create order from webhook:", error);
       // Return 500 so Stripe retries
