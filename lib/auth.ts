@@ -20,7 +20,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       // Only allow ADMIN_EMAIL to sign in
       return user.email === process.env.ADMIN_EMAIL;
     },
-    async session({ session, user }) {
+    async session({ session }) {
       return session;
     },
   },

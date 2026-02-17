@@ -4,7 +4,7 @@ interface Product {
   id: string;
   name: string;
   slug: string;
-  price: number | string;
+  price: number | string | { toString(): string };
   images: string[];
   stockQuantity: number;
   lowStockThreshold: number;
