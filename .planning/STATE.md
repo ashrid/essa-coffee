@@ -26,12 +26,12 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 ## Current Position
 
 **Phase:** 1 (Core MVP)
-**Plan:** 02 (next to execute — storefront UI)
-**Status:** In progress — Plans 01, 03, 06 complete (Plan 02 catalog pages next)
-**Progress:** 43% (3/7 plans in Phase 1 complete — plans 01, 03, 06)
+**Plan:** 03 (next to execute — checkout flow)
+**Status:** In progress — Plans 01, 02, 03, 06 complete
+**Progress:** 57% (4/7 plans in Phase 1 complete)
 
 ```
-[=======================                 ] 57%
+[=============================           ] 71%
 ```
 
 ---
@@ -71,6 +71,9 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 | Toast-only on add-to-cart | No drawer auto-open per 01-CONTEXT.md user decision — toast confirms action | Committed (Plan 03) |
 | CartSummary ctaHref/ctaLabel props | Single component handles drawer (View Cart) and cart page (Proceed to Checkout) | Committed (Plan 03) |
 | totalItems/subtotal stored state | Zustand persist requires stored values for hydration; recalculated on each mutation | Committed (Plan 03) |
+| Prisma Decimal type for prices | Components accept `number \| string \| { toString() }` to handle Decimal without conversion | Committed (Plan 02) |
+| ISR 60s revalidation | Product pages regenerate every 60s for near-real-time updates without sacrificing performance | Committed (Plan 02) |
+| Hybrid filtering approach | Server-side for category/stock/sort, client-side for search | Committed (Plan 02) |
 
 ---
 
@@ -179,6 +182,7 @@ Research completed 2026-02-16. Key findings:
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 01-core-mvp | 01 | 12 min | 3/3 | 24 |
+| 01-core-mvp | 02 | 25 min | 3/3 | 13 |
 | 01-core-mvp | 03 | 6 min | 2/2 | 12 |
 | 01-core-mvp | 06 | 18 min | 2/2 | 22 |
 
@@ -189,8 +193,8 @@ Research completed 2026-02-16. Key findings:
 **Created:** 2026-02-16 after roadmap generation
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
-**Last Executed:** Plan 01-06 — Auth.js magic link auth, admin panel with dashboard, product CRUD, orders, categories
-**Stopped At:** Completed 01-06-PLAN.md (summary created)
+**Last Executed:** Plan 01-02 — Storefront UI with homepage, shop page, product detail, ISR
+**Stopped At:** Completed 01-02-PLAN.md (summary created)
 
 ### Plan 06 Complete
 
@@ -209,12 +213,20 @@ Admin panel fully implemented:
 - `components/admin/LowStockBadge.tsx` + `DashboardStats.tsx` — UI components
 **Last Updated:** 2026-02-16T16:01:53Z
 
-### Plan 01 Blocker (User Action Required)
+### Plan 02 Complete
 
-Database not yet set up. Before Plan 02 can run server-side Prisma queries:
-1. Create `.env` with `DATABASE_URL="postgresql://user:pass@localhost:5432/shopseeds"`
-2. Run `npx prisma db push`
-3. Run `npx prisma db seed`
+Storefront UI fully implemented:
+- `app/(store)/page.tsx` — Homepage with hero, featured products, full catalog
+- `app/(store)/shop/page.tsx` — Shop page with server-side filtering
+- `app/(store)/shop/ShopPageClient.tsx` — Client-side search wrapper
+- `app/(store)/shop/[slug]/page.tsx` — Product detail with ISR (60s revalidate)
+- `components/store/ProductGrid.tsx` — Responsive product grid
+- `components/store/FeaturedProducts.tsx` — Featured section
+- `components/store/SearchBar.tsx` — Debounced search input
+- `components/store/CategorySidebar.tsx` — Category filters, in-stock toggle, price sort
+- `components/store/ProductImageCarousel.tsx` — Swipeable carousel with thumbnails
+- `components/store/RelatedProducts.tsx` — Cross-sell products
+- `components/ui/checkbox.tsx` + `select.tsx` — shadcn form components
 
 ### Plan 03 Complete
 
@@ -231,4 +243,4 @@ Plan 02 (catalog browsing) still needs to be executed (shop page, homepage, prod
 ---
 
 *State initialized: 2026-02-16*
-*Updated by: Plan 03 execution (01-03-PLAN.md)*
+*Updated by: Plan 02 execution (01-02-PLAN.md)*
