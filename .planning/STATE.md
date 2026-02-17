@@ -252,6 +252,16 @@ Plan 02 (catalog browsing) still needs to be executed (shop page, homepage, prod
 *State initialized: 2026-02-16*
 *Updated by: Plan 05 execution (01-05-PLAN.md)*
 
+### Plan 05 Complete
+
+Transactional email system with Resend and React Email:
+- `components/emails/OrderConfirmationEmail.tsx` — Customer confirmation with forest green header, payment banner, items table, pickup details
+- `components/emails/AdminNewOrderEmail.tsx` — Admin notification with customer details, payment badge, "View Order" CTA
+- `lib/email.ts` — Resend client with sendOrderConfirmation and sendAdminNewOrderNotification, OrderWithItems type
+- `app/api/checkout/route.ts` — Email sending after PAY_ON_PICKUP order (Promise.allSettled, non-blocking)
+- `app/api/webhook/route.ts` — Email sending after Stripe payment confirmation (Promise.allSettled, non-blocking)
+**Last Updated:** 2026-02-17T16:00:26Z
+
 ### Plan 04 Complete
 
 Checkout flow with Stripe integration:
