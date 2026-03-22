@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 01-05-PLAN.md (summary created)
+last_updated: "2026-03-22T16:59:55.023Z"
+progress:
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 7
+  completed_plans: 7
+---
+
 # Project State: ShopSeeds
 
 **Project:** ShopSeeds - Local e-commerce for plants and seeds
@@ -12,6 +26,7 @@
 Customers can browse plants and seeds online, place an order, and pick it up — replacing informal selling with a professional storefront.
 
 **Key Constraints:**
+
 - Pickup-only fulfillment (no shipping in v1)
 - Solo admin operation (one person manages everything)
 - Small catalog (<30 products: houseplants, seeds, succulents)
@@ -19,22 +34,14 @@ Customers can browse plants and seeds online, place an order, and pick it up —
 - Guest checkout only (no customer accounts)
 
 **Current Focus:**
-Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, checkout, payment, and admin panel.
+Phase 01 — core-mvp
 
 ---
 
 ## Current Position
 
-**Phase:** 1 (Core MVP)
-**Plan:** 07 (next to execute — final polish)
-**Status:** In progress — Plans 01, 02, 03, 04, 05, 06 complete
-**Progress:** 86% (6/7 plans in Phase 1 complete)
-
-```
-[========================================] 86%
-```
-
----
+Phase: 2
+Plan: Not started
 
 ## Roadmap Structure
 
@@ -87,6 +94,7 @@ Phase 1 (Core MVP) — building working e-commerce store with catalog, cart, che
 **Tracking begins after Phase 1 launch.**
 
 Metrics to monitor (Phase 2):
+
 - Order volume (orders/day, repeat customers)
 - Payment success rate (% transactions approved)
 - Cart abandonment rate (% carts not completed)
@@ -104,11 +112,13 @@ Metrics to monitor (Phase 2):
 Research completed 2026-02-16. Key findings:
 
 **Recommended Stack:**
+
 - Next.js 15, React 19, TypeScript, PostgreSQL 16, Prisma, Stripe, SendGrid/Resend
 - Vercel deployment (auto-deploy on git push)
 - TanStack Query for dynamic data, Tailwind CSS, Headless UI
 
 **Table Stakes (must ship v1.0):**
+
 - Product catalog with images, pricing, availability
 - Shopping cart with persistence
 - Checkout form (2-3 steps)
@@ -120,6 +130,7 @@ Research completed 2026-02-16. Key findings:
 - Pickup location/hours
 
 **Differentiators (v1.1+, post-feedback):**
+
 - Plant care tips per product
 - Seasonal collections
 - Curated categories (Beginner-friendly, Low-light, Pet-safe)
@@ -127,6 +138,7 @@ Research completed 2026-02-16. Key findings:
 - Gift message option
 
 **Critical Pitfalls:**
+
 1. Over-engineering (avoid complex features before validating)
 2. Not validating input server-side (security risk)
 3. Custom payment forms (use Stripe Checkout pre-built)
@@ -134,6 +146,7 @@ Research completed 2026-02-16. Key findings:
 5. Not testing checkout edge cases
 
 **Architecture Pattern:**
+
 - Server-side rendering for products (ISR)
 - Client-side state for cart (localStorage)
 - Server-side validation for all API routes (Zod)
@@ -206,6 +219,7 @@ Research completed 2026-02-16. Key findings:
 ### Plan 06 Complete
 
 Admin panel fully implemented:
+
 - `lib/auth.ts` — Auth.js v5 with Resend email provider, ADMIN_EMAIL guard
 - `middleware.ts` — Protects /admin/* routes with auth() wrapper
 - `app/(admin)/layout.tsx` — Forest sidebar with navigation, mobile hamburger menu
@@ -218,11 +232,13 @@ Admin panel fully implemented:
 - `components/admin/ProductForm.tsx` — Tiptap editor for description/care instructions, 5 image URLs
 - `components/admin/OrderStatusSelect.tsx` — Color-coded status dropdown
 - `components/admin/LowStockBadge.tsx` + `DashboardStats.tsx` — UI components
+
 **Last Updated:** 2026-02-16T16:01:53Z
 
 ### Plan 02 Complete
 
 Storefront UI fully implemented:
+
 - `app/(store)/page.tsx` — Homepage with hero, featured products, full catalog
 - `app/(store)/shop/page.tsx` — Shop page with server-side filtering
 - `app/(store)/shop/ShopPageClient.tsx` — Client-side search wrapper
@@ -238,6 +254,7 @@ Storefront UI fully implemented:
 ### Plan 03 Complete
 
 Cart system fully functional:
+
 - `lib/cart-store.ts` — Zustand store with localStorage persistence
 - `components/store/CartDrawer.tsx` — Slide-out drawer (shadcn Sheet) with item list
 - `components/store/CartItem.tsx` — Quantity controls, remove, line total
@@ -255,16 +272,19 @@ Plan 02 (catalog browsing) still needs to be executed (shop page, homepage, prod
 ### Plan 05 Complete
 
 Transactional email system with Resend and React Email:
+
 - `components/emails/OrderConfirmationEmail.tsx` — Customer confirmation with forest green header, payment banner, items table, pickup details
 - `components/emails/AdminNewOrderEmail.tsx` — Admin notification with customer details, payment badge, "View Order" CTA
 - `lib/email.ts` — Resend client with sendOrderConfirmation and sendAdminNewOrderNotification, OrderWithItems type
 - `app/api/checkout/route.ts` — Email sending after PAY_ON_PICKUP order (Promise.allSettled, non-blocking)
 - `app/api/webhook/route.ts` — Email sending after Stripe payment confirmation (Promise.allSettled, non-blocking)
+
 **Last Updated:** 2026-02-17T16:00:26Z
 
 ### Plan 04 Complete
 
 Checkout flow with Stripe integration:
+
 - `lib/stripe.ts` — Stripe client singleton
 - `lib/orders.ts` — Shared `createOrderAtomically` with Serializable transactions
 - `app/api/checkout/route.ts` — POST endpoint for STRIPE and PAY_ON_PICKUP
@@ -273,4 +293,5 @@ Checkout flow with Stripe integration:
 - `components/checkout/CheckoutStepPayment.tsx` — Step 2 payment selection
 - `app/(store)/checkout/page.tsx` — 2-step checkout flow
 - `app/(store)/order-confirmation/page.tsx` — Order confirmation page
+
 **Last Updated:** 2026-02-17T15:54:05Z
