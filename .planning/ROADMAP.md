@@ -9,7 +9,8 @@
 
 ## Phases
 
-- [ ] **Phase 1: Core MVP** - Build working e-commerce store with catalog, cart, checkout, and payment (pickup-only)
+- [x] **Phase 1: Core MVP** - Build working e-commerce store with catalog, cart, checkout, and payment (pickup-only) ✓
+- [ ] **Phase 1.1: Coffee Ordering Pivot** - Adapt site for coffee shop ordering, remove stock/care fields, replace plant-seed content (INSERTED)
 - [ ] **Phase 2: Launch & Validation** - Deploy to production, monitor operations, gather customer feedback
 - [ ] **Phase 3: Competitive Advantages** - Add features based on real customer demand
 
@@ -54,6 +55,20 @@ Plans:
 - [ ] 01-07-PLAN.md — Human verification of complete Phase 1 MVP
 
 ---
+
+### Phase 01.1: Coffee Ordering Pivot (INSERTED)
+
+**Goal:** Adapt the ShopSeeds store for coffee shop online ordering — replace all plant/seed product content, remove stock-quantity management and care instructions, ensure the full order flow (browse coffee drinks → cart → checkout → order creation) works correctly.
+
+**Requirements**: D-01 through D-20 (all locked decisions in 01.1-CONTEXT.md)
+**Depends on:** Phase 1
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01.1-01-PLAN.md — Schema migration (isAvailable), validators, orders, cart store
+- [ ] 01.1-02-PLAN.md — Admin panel: ProductForm, DashboardStats, product API routes
+- [ ] 01.1-03-PLAN.md — Store palette, AvailabilityBadge, branding sweep, store pages
+- [ ] 01.1-04-PLAN.md — Coffee seed data (4 categories, ~14 products) + human verification
 
 ### Phase 2: Launch & Validation
 
