@@ -12,18 +12,22 @@ Customers can browse plants and seeds online, place an order, and pick it up —
 
 ### Validated
 
-(None yet — ship to validate)
+Validated in Phase 01 (core-mvp), human-verified 2026-03-22:
+
+- [x] Product catalog with photos, names, prices, and descriptions
+- [x] Shopping cart and checkout flow
+- [x] Online payment option (card/mobile) — Stripe Checkout
+- [x] Pay-on-pickup option
+- [x] Order management for the owner (view, update status)
+- [x] Product management for the owner (add, edit, remove)
+- [x] Customer order confirmation and status
+- [x] Modern, bold visual design — earthy/modern (forest green + cream)
+- [x] Transactional emails — customer confirmation + admin notification
+- [x] Magic link admin authentication
 
 ### Active
 
-- [ ] Product catalog with photos, names, prices, and descriptions
-- [ ] Shopping cart and checkout flow
-- [ ] Online payment option (card/mobile)
-- [ ] Pay-on-pickup option
-- [ ] Order management for the owner (view, update status)
-- [ ] Product management for the owner (add, edit, remove)
-- [ ] Customer order confirmation and status
-- [ ] Modern, bold visual design
+(All Phase 01 requirements validated — awaiting Phase 02 deployment)
 
 ### Out of Scope
 
@@ -53,10 +57,16 @@ Customers can browse plants and seeds online, place an order, and pick it up —
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Pickup-only for v1 | Simplifies fulfillment, delivery added later | — Pending |
-| Basic product info | Name/photo/price/description sufficient for small catalog | — Pending |
-| No customer accounts | Reduces friction for buyers, solo owner doesn't need CRM | — Pending |
-| Modern & bold design | Owner's preference, differentiates from typical plant stores | — Pending |
+| Pickup-only for v1 | Simplifies fulfillment, delivery added later | Implemented |
+| Basic product info | Name/photo/price/description sufficient for small catalog | Implemented |
+| No customer accounts | Reduces friction for buyers, solo owner doesn't need CRM | Implemented |
+| Modern & bold design | Owner's preference, differentiates from typical plant stores | Implemented — earthy/modern (forest green + cream) |
+| Magic link admin auth | No password management for solo owner | Implemented — Auth.js v5 + Resend |
+| Stripe + pay-on-pickup | Dual payment paths for local pickup flow | Implemented |
+
+## Current State
+
+Phase 01 (core-mvp) complete — full working MVP built and human-verified. Ready for Phase 02 (launch & validation / deployment).
 
 ---
-*Last updated: 2026-02-16 after initialization*
+*Last updated: 2026-03-22 — Phase 01 complete*
