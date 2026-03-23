@@ -8,9 +8,10 @@ import { sendMagicLinkEmail } from "./email";
 const globalForTokens = globalThis as unknown as {
   tokenStore: Map<string, { email: string; expires: number }> | undefined;
 };
-const tokenStore =
-  globalForTokens.tokenStore ?? new Map<string, { email: string; expires: number }>();
-if (process.env.NODE_ENV !== "production") globalForTokens.tokenStore = tokenStore;
+if (!globalForTokens.tokenStore) {
+  globalForTokens.tokenStore = new Map<string, { email: string; expires: number }>();
+}
+const tokenStore = globalForTokens.tokenStore;
 
 export function generateMagicToken(email: string): string {
   const token = crypto.randomUUID();
