@@ -1,26 +1,57 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const error = searchParams.get("error");
+  const token = searchParams.get("token");
+  const callbackUrl = searchParams.get("callbackUrl") || "/admin";
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const signInAttempted = useRef(false);
+
+  // Handle magic link token from URL (user clicked email link)
+  useEffect(() => {
+    if (token && !signInAttempted.current) {
+      signInAttempted.current = true;
+      setIsLoading(true);
+      signIn("magic-link", {
+        token,
+        callbackUrl,
+        redirect: true,
+      }).catch((err) => {
+        console.error("Auth error:", err);
+        setAuthError("Invalid or expired link. Please request a new one.");
+        setIsLoading(false);
+      });
+    }
+  }, [token, callbackUrl]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    setAuthError(null);
     try {
-      await signIn("resend", {
-        email,
-        callbackUrl: "/admin",
-        redirect: false,
+      const response = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, callbackUrl }),
       });
-      setIsSent(true);
+
+      if (response.ok) {
+        setIsSent(true);
+      } else {
+        const data = await response.json();
+        setAuthError(data.error || "Failed to send magic link");
+      }
+    } catch (err) {
+      setAuthError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -30,13 +61,13 @@ function LoginForm() {
     <div className="min-h-screen bg-cream-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-forest-600">ShopSeeds</h1>
+          <h1 className="text-2xl font-bold text-forest-600">Essa Cafe</h1>
           <p className="text-gray-500 mt-1">Admin Login</p>
         </div>
 
-        {error && (
+        {(error || authError) && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-            This email is not authorized to access the admin panel.
+            {authError || "Sign-in failed. The link may have expired — please request a new one."}
           </div>
         )}
 

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ShopSeeds - Local Plants & Seeds",
-  description: "Browse and order plants and seeds for local pickup",
+  title: "Essa Cafe - Fresh Coffee for Local Pickup",
+  description: "Order ahead, pick up fresh. Browse our menu of hot drinks, iced drinks, specialty beverages and food.",
 };
 
 export default function RootLayout({
@@ -17,10 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
-        <Toaster richColors position="top-right" />
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

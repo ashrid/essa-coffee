@@ -28,7 +28,7 @@ export default function Header() {
           className="flex items-center gap-2 text-forest-600 font-bold text-xl hover:text-forest-700 transition-colors"
         >
           <Leaf className="w-5 h-5" />
-          ShopSeeds
+          Essa Cafe
         </Link>
 
         {/* Desktop nav */}
@@ -79,7 +79,7 @@ export default function Header() {
                     onClick={() => setMobileOpen(false)}
                   >
                     <Leaf className="w-4 h-4" />
-                    ShopSeeds
+                    Essa Cafe
                   </Link>
                 </div>
                 <nav className="flex flex-col gap-1">

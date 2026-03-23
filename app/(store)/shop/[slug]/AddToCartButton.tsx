@@ -38,7 +38,7 @@ export default function AddToCartButton({
       disabled={disabled}
       className="w-full bg-forest-600 hover:bg-forest-700 disabled:bg-sage-200 disabled:cursor-not-allowed disabled:text-sage-400 text-cream-50 font-semibold py-4 px-6 rounded-lg transition-colors text-lg"
     >
-      {disabled ? "Out of Stock" : "Add to Cart"}
+      {disabled ? "Unavailable" : "Add to Cart"}
     </button>
   );
 }

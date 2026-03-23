@@ -45,7 +45,7 @@ export function AdminNewOrderEmail({
     <Html>
       <Head />
       <Preview>
-        New Order #{orderNumber} from {guestName} - ShopSeeds
+        New Order #{orderNumber} from {guestName} - Essa Cafe
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
@@ -120,7 +120,7 @@ export function AdminNewOrderEmail({
                     style={{
                       ...styles.td,
                       fontWeight: "bold",
-                      borderTop: "2px solid #1b4332",
+                      borderTop: "2px solid #3b1f0e",
                     }}
                   >
                     Total
@@ -130,7 +130,7 @@ export function AdminNewOrderEmail({
                       ...styles.td,
                       fontWeight: "bold",
                       textAlign: "right",
-                      borderTop: "2px solid #1b4332",
+                      borderTop: "2px solid #3b1f0e",
                     }}
                   >
                     ${total.toFixed(2)}
@@ -152,7 +152,7 @@ export function AdminNewOrderEmail({
           {/* Footer */}
           <Section style={styles.footer}>
             <Text style={styles.footerText}>
-              ShopSeeds Admin Notification
+              Essa Cafe Admin Notification
             </Text>
             <Text style={styles.footerSmall}>
               This is an automated notification for new orders.
@@ -166,7 +166,7 @@ export function AdminNewOrderEmail({
 
 const styles = {
   body: {
-    backgroundColor: "#f0f7f0",
+    backgroundColor: "#f5f1ed",
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     margin: 0,
     padding: 0,
@@ -178,7 +178,7 @@ const styles = {
     padding: "20px",
   },
   header: {
-    backgroundColor: "#1b4332",
+    backgroundColor: "#3b1f0e",
     borderRadius: "8px",
     padding: "24px",
     textAlign: "center" as const,
@@ -199,7 +199,7 @@ const styles = {
     marginTop: "24px",
   },
   sectionTitle: {
-    color: "#1b4332",
+    color: "#3b1f0e",
     fontSize: "18px",
     fontWeight: "bold",
     margin: "0 0 12px 0",
@@ -228,7 +228,7 @@ const styles = {
     margin: "0 0 8px 0",
   },
   link: {
-    color: "#1b4332",
+    color: "#3b1f0e",
     textDecoration: "underline",
   },
   table: {
@@ -236,8 +236,8 @@ const styles = {
     width: "100%",
   },
   th: {
-    borderBottom: "2px solid #1b4332",
-    color: "#1b4332",
+    borderBottom: "2px solid #3b1f0e",
+    color: "#3b1f0e",
     fontSize: "14px",
     fontWeight: "600",
     padding: "12px 8px",
@@ -255,7 +255,7 @@ const styles = {
     textAlign: "center" as const,
   },
   button: {
-    backgroundColor: "#1b4332",
+    backgroundColor: "#3b1f0e",
     borderRadius: "8px",
     color: "#ffffff",
     display: "inline-block",

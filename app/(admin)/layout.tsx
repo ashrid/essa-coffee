@@ -35,7 +35,7 @@ export default async function AdminLayout({
       <aside className="w-60 bg-forest-600 text-cream-50 flex flex-col h-screen sticky top-0 shrink-0">
         {/* Header */}
         <div className="h-16 px-4 flex items-center border-b border-forest-700 shrink-0">
-          <span className="font-bold text-lg text-cream-50">ShopSeeds Admin</span>
+          <span className="font-bold text-lg text-cream-50">Essa Cafe Admin</span>
         </div>
 
         {/* Navigation */}

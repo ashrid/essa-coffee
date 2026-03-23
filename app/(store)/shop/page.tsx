@@ -3,8 +3,8 @@ import CategorySidebar from "@/components/store/CategorySidebar";
 import ShopPageClient from "./ShopPageClient";
 
 export const metadata = {
-  title: "Shop All Plants & Seeds | ShopSeeds",
-  description: "Browse our complete collection of houseplants, seeds, and succulents.",
+  title: "Our Menu | Essa Cafe",
+  description: "Browse our full menu of coffee drinks and food for pickup.",
 };
 
 interface ShopPageProps {
@@ -61,7 +61,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
       <h1 className="text-3xl font-bold text-forest-900 mb-2">
-        Shop All Plants & Seeds
+        Our Menu
       </h1>
       <p className="text-sage-500 mb-8">
         {products.length} product{products.length !== 1 ? "s" : ""} available

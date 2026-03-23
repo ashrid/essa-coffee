@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/cart-store";
-import StockBadge from "@/components/store/StockBadge";
+import AvailabilityBadge from "@/components/store/StockBadge";
 import { formatPrice } from "@/lib/utils";
 
 interface ProductCardProduct {
@@ -24,7 +24,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const isOutOfStock = !product.isAvailable;
+  const isUnavailable = !product.isAvailable;
 
   const handleAddToCart = () => {
     useCartStore.getState().addItem({
@@ -42,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div
       className={`group flex flex-col bg-white rounded-xl border border-cream-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow${
-        isOutOfStock ? " opacity-60 grayscale" : ""
+        isUnavailable ? " opacity-60 grayscale" : ""
       }`}
     >
       {/* Product image */}
@@ -80,15 +80,15 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-forest-600 font-semibold text-sm">
             {formatPrice(Number(product.price))}
           </span>
-          <StockBadge isAvailable={product.isAvailable} />
+          <AvailabilityBadge isAvailable={product.isAvailable} />
         </div>
 
         <button
           onClick={handleAddToCart}
-          disabled={isOutOfStock}
+          disabled={isUnavailable}
           className="mt-auto w-full bg-forest-600 hover:bg-forest-700 disabled:bg-sage-200 disabled:cursor-not-allowed text-cream-50 disabled:text-sage-400 text-sm font-medium py-2 px-3 rounded-md transition-colors"
         >
-          {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+          {isUnavailable ? "Unavailable" : "Add to Cart"}
         </button>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import ProductImageCarousel from "@/components/store/ProductImageCarousel";
-import StockBadge from "@/components/store/StockBadge";
+import AvailabilityBadge from "@/components/store/StockBadge";
 import RelatedProducts from "@/components/store/RelatedProducts";
 import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "./AddToCartButton";
@@ -36,15 +36,15 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Product Not Found | ShopSeeds",
+      title: "Product Not Found | Essa Cafe",
     };
   }
 
   return {
-    title: `${product.name} | ShopSeeds`,
+    title: `${product.name} | Essa Cafe`,
     description:
       product.description?.slice(0, 160) ||
-      `Shop ${product.name} at ShopSeeds. Local pickup available.`,
+      `Shop ${product.name} at Essa Cafe. Local pickup available.`,
     openGraph: {
       title: product.name,
       description: product.description?.slice(0, 160),
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const isOutOfStock = !product.isAvailable;
+  const isUnavailable = !product.isAvailable;
   const relatedProducts = product.category.products;
 
   return (
@@ -117,7 +117,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <span className="text-2xl md:text-3xl font-bold text-forest-600">
               {formatPrice(Number(product.price))}
             </span>
-            <StockBadge isAvailable={product.isAvailable} />
+            <AvailabilityBadge isAvailable={product.isAvailable} />
           </div>
 
           {/* Add to Cart Button */}
@@ -130,7 +130,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               isAvailable: product.isAvailable,
               slug: product.slug,
             }}
-            disabled={isOutOfStock}
+            disabled={isUnavailable}
           />
 
           {/* Description */}

@@ -38,13 +38,13 @@ export function OrderConfirmationEmail({
     <Html>
       <Head />
       <Preview>
-        Your order #{orderNumber} has been confirmed - ShopSeeds
+        Your order #{orderNumber} has been confirmed - Essa Cafe
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           {/* Header */}
           <Section style={styles.header}>
-            <Heading style={styles.logo}>ShopSeeds</Heading>
+            <Heading style={styles.logo}>Essa Cafe</Heading>
             <Heading style={styles.title}>Order Confirmed!</Heading>
           </Section>
 
@@ -106,7 +106,7 @@ export function OrderConfirmationEmail({
                 <tr>
                   <td
                     colSpan={2}
-                    style={{ ...styles.td, fontWeight: "bold", borderTop: "2px solid #1b4332" }}
+                    style={{ ...styles.td, fontWeight: "bold", borderTop: "2px solid #3b1f0e" }}
                   >
                     Total
                   </td>
@@ -115,7 +115,7 @@ export function OrderConfirmationEmail({
                       ...styles.td,
                       fontWeight: "bold",
                       textAlign: "right",
-                      borderTop: "2px solid #1b4332",
+                      borderTop: "2px solid #3b1f0e",
                     }}
                   >
                     ${total.toFixed(2)}
@@ -132,7 +132,7 @@ export function OrderConfirmationEmail({
               Your order will be ready for pickup soon. We'll email you when it's ready.
             </Text>
             <Text style={styles.pickupAddress}>
-              <strong>ShopSeeds</strong>
+              <strong>Essa Cafe</strong>
               <br />
               123 Green Street
               <br />
@@ -151,7 +151,7 @@ export function OrderConfirmationEmail({
           {/* Footer */}
           <Section style={styles.footer}>
             <Text style={styles.footerText}>
-              ShopSeeds - Local plants and seeds
+              Essa Cafe - Local plants and seeds
             </Text>
             <Text style={styles.footerSmall}>
               You're receiving this email because you placed an order on our website.
@@ -165,7 +165,7 @@ export function OrderConfirmationEmail({
 
 const styles = {
   body: {
-    backgroundColor: "#f0f7f0",
+    backgroundColor: "#f5f1ed",
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     margin: 0,
     padding: 0,
@@ -177,7 +177,7 @@ const styles = {
     padding: "20px",
   },
   header: {
-    backgroundColor: "#1b4332",
+    backgroundColor: "#3b1f0e",
     borderRadius: "8px",
     padding: "24px",
     textAlign: "center" as const,
@@ -198,7 +198,7 @@ const styles = {
     marginTop: "24px",
   },
   sectionTitle: {
-    color: "#1b4332",
+    color: "#3b1f0e",
     fontSize: "18px",
     fontWeight: "bold",
     margin: "0 0 12px 0",
@@ -221,8 +221,8 @@ const styles = {
     margin: 0,
   },
   orderNumberSection: {
-    backgroundColor: "#f0f7f0",
-    border: "2px solid #1b4332",
+    backgroundColor: "#f5f1ed",
+    border: "2px solid #3b1f0e",
     borderRadius: "8px",
     marginTop: "24px",
     padding: "20px",
@@ -235,7 +235,7 @@ const styles = {
     textTransform: "uppercase" as const,
   },
   orderNumber: {
-    color: "#1b4332",
+    color: "#3b1f0e",
     fontSize: "32px",
     fontWeight: "bold",
     letterSpacing: "2px",
@@ -246,8 +246,8 @@ const styles = {
     width: "100%",
   },
   th: {
-    borderBottom: "2px solid #1b4332",
-    color: "#1b4332",
+    borderBottom: "2px solid #3b1f0e",
+    color: "#3b1f0e",
     fontSize: "14px",
     fontWeight: "600",
     padding: "12px 8px",

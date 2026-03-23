@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Pickup Information | ShopSeeds",
+  title: "Pickup Information | Essa Cafe",
   description: "Find our location, hours, and pickup instructions.",
 };
 

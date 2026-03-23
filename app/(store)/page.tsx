@@ -4,8 +4,8 @@ import ProductGrid from "@/components/store/ProductGrid";
 import Link from "next/link";
 
 export const metadata = {
-  title: "ShopSeeds - Plants & Seeds for Local Pickup",
-  description: "Browse our collection of houseplants, seeds, and succulents. Order online and pick up locally.",
+  title: "Essa Cafe - Fresh Coffee for Local Pickup",
+  description: "Order ahead, pick up fresh. Browse our selection of hot drinks, iced drinks, specialty beverages and food.",
 };
 
 export default async function HomePage() {
@@ -33,10 +33,10 @@ export default async function HomePage() {
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <div className="max-w-2xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">
-              Plants & Seeds for Your Space
+              Fresh Coffee, Ready for Pickup
             </h1>
             <p className="text-lg md:text-xl text-cream-100 mb-6">
-              Curated houseplants, seeds, and succulents. Order online, pick up locally.
+              Order ahead, pick up fresh. Browse our selection of hot drinks, iced drinks, specialty beverages and food.
             </p>
             <Link
               href="/shop"
@@ -57,7 +57,7 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
         <div className="flex items-center justify-between mb-6 md:mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-forest-900">
-            Our Collection
+            Our Menu
           </h2>
           <Link
             href="/shop"

@@ -33,7 +33,7 @@ export function CartDrawer() {
             <div className="pt-6">
               <EmptyState
                 title="Your cart is empty"
-                subtitle="Add some plants or seeds to get started"
+                subtitle="Add items to get started. Browse our menu of fresh coffee and food."
               />
               <div className="text-center mt-4">
                 <Link
@@ -61,6 +61,7 @@ export function CartDrawer() {
               itemCount={totalItems}
               ctaHref="/cart"
               ctaLabel="View Cart"
+              onClick={closeDrawer}
             />
           </div>
         )}
