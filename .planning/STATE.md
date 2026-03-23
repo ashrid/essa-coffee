@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-05-PLAN.md (summary created)
-last_updated: "2026-03-22T16:59:55.023Z"
+stopped_at: Completed 01.1-01-PLAN.md
+last_updated: "2026-03-23T06:11:14.494Z"
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 11
+  completed_plans: 8
 ---
 
 # Project State: ShopSeeds
@@ -34,14 +34,14 @@ Customers can browse plants and seeds online, place an order, and pick it up —
 - Guest checkout only (no customer accounts)
 
 **Current Focus:**
-Phase 01 — core-mvp
+Phase 01.1 — coffee-ordering-pivot
 
 ---
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 01.1 (coffee-ordering-pivot) — EXECUTING
+Plan: 2 of 4
 
 ## Roadmap Structure
 
@@ -165,6 +165,10 @@ Research completed 2026-02-16. Key findings:
 **Tracking:** In-stock / limited / out-of-stock status
 **Safety:** Atomic database transactions prevent overselling
 
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 01: Coffee ordering pivot — adapt site for coffee shop ordering, remove stock/care fields, replace all plant-seed references (URGENT)
+
 ---
 
 ## Blockers & Gaps
@@ -207,6 +211,7 @@ Research completed 2026-02-16. Key findings:
 | 01-core-mvp | 06 | 18 min | 2/2 | 22 |
 
 ---
+| Phase 01.1-coffee-ordering-pivot P01 | 8 min | 2 tasks | 18 files |
 
 ## Session Notes
 
@@ -214,7 +219,7 @@ Research completed 2026-02-16. Key findings:
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
 **Last Executed:** Plan 01-05 — Transactional email system with Resend and React Email
-**Stopped At:** Completed 01-05-PLAN.md (summary created)
+**Stopped At:** Completed 01.1-01-PLAN.md
 
 ### Plan 06 Complete
 
