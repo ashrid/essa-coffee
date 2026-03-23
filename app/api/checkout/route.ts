@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       const product = products.find((p) => p.id === item.productId)!;
       return {
         price_data: {
-          currency: "usd",
+          currency: "aed",
           product_data: {
             name: product.name,
             images: product.images.length > 0 ? [product.images[0]] : undefined,
