@@ -1,21 +1,22 @@
-interface StockBadgeProps {
+interface AvailabilityBadgeProps {
   isAvailable: boolean;
 }
 
-export default function StockBadge({ isAvailable }: StockBadgeProps) {
-  if (!isAvailable) {
+export default function AvailabilityBadge({ isAvailable }: AvailabilityBadgeProps) {
+  if (isAvailable) {
     return (
-      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-        Unavailable
+      <span className="bg-sage-100 text-sage-500 text-xs px-2 py-0.5 rounded-full font-medium">
+        Available
       </span>
     );
   }
 
   return (
-    <span className="bg-sage-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-      Available
+    <span className="bg-forest-100 text-forest-500 text-xs px-2 py-0.5 rounded-full font-medium">
+      Unavailable
     </span>
   );
 }
 
-export { StockBadge };
+// Named export alias so any existing code using StockBadge named export still works
+export { AvailabilityBadge };
