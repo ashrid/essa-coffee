@@ -7,13 +7,9 @@ async function getStats() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Low stock: fetch all products and count those where stock <= threshold
-  const [newOrdersCount, allProducts, todayRevenueResult, recentOrders] =
+  const [newOrdersCount, todayRevenueResult, recentOrders] =
     await Promise.all([
       prisma.order.count({ where: { status: "NEW" } }),
-      prisma.product.findMany({
-        select: { isAvailable: true },
-      }),
       prisma.order.aggregate({
         where: {
           createdAt: { gte: todayStart },
@@ -35,13 +31,8 @@ async function getStats() {
       }),
     ]);
 
-  const lowStockCount = allProducts.filter(
-    (p: { isAvailable: boolean }) => !p.isAvailable
-  ).length;
-
   return {
     newOrdersCount,
-    lowStockCount,
     todayRevenue: Number(todayRevenueResult._sum.total ?? 0),
     recentOrders,
   };
@@ -65,19 +56,18 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 export default async function AdminDashboardPage() {
-  const { newOrdersCount, lowStockCount, todayRevenue, recentOrders } =
+  const { newOrdersCount, todayRevenue, recentOrders } =
     await getStats();
 
   return (
     <div className="p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">ShopSeeds admin overview</p>
+        <p className="text-gray-500 text-sm mt-1">Essa Cafe admin overview</p>
       </div>
 
       <DashboardStats
         newOrdersCount={newOrdersCount}
-        lowStockCount={lowStockCount}
         todayRevenue={todayRevenue}
       />
 
