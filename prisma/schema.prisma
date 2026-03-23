@@ -20,25 +20,22 @@ model Category {
 }
 
 model Product {
-  id                String      @id @default(cuid())
-  name              String
-  slug              String      @unique
-  description       String?
-  careInstructions  String?
-  price             Decimal     @db.Decimal(10, 2)
-  images            String[]
-  stockQuantity     Int         @default(0)
-  lowStockThreshold Int         @default(5)
-  isFeatured        Boolean     @default(false)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  categoryId        String
-  category          Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  orderItems        OrderItem[]
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String?
+  price       Decimal     @db.Decimal(10, 2)
+  images      String[]
+  isFeatured  Boolean     @default(false)
+  isAvailable Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  categoryId  String
+  orderItems  OrderItem[]
+  category    Category    @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([isFeatured])
-  @@index([stockQuantity])
   @@map("products")
 }
 
@@ -69,23 +66,10 @@ model OrderItem {
   productId String
   orderId   String
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  product   Product @relation(fields: [productId], references: [id])
 
   @@unique([orderId, productId])
   @@map("order_items")
-}
-
-enum OrderStatus {
-  NEW
-  READY
-  COMPLETED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentMethod {
-  STRIPE
-  PAY_ON_PICKUP
 }
 
 model User {
@@ -136,4 +120,17 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+enum OrderStatus {
+  NEW
+  READY
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAY_ON_PICKUP
 }
