@@ -66,7 +66,7 @@ Validated in Phase 01 (core-mvp), human-verified 2026-03-22:
 
 ## Current State
 
-Phase 01 (core-mvp) complete — full working MVP built and human-verified. Ready for Phase 02 (launch & validation / deployment).
+Phase 01.1 (coffee-ordering-pivot) complete — codebase fully rebranded to Essa Cafe. Schema migrated to `isAvailable` model, espresso/caramel palette live, admin panel and store updated, coffee seed data seeded (4 categories, 14 products). Build clean. Ready for Phase 02 (launch & validation / deployment).
 
 ---
-*Last updated: 2026-03-22 — Phase 01 complete*
+*Last updated: 2026-03-23 — Phase 01.1 complete*
