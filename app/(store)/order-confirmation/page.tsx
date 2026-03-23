@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { CheckCircle, Package, MapPin, Clock } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -58,7 +57,7 @@ export default async function OrderConfirmationPage({
     // If order not found yet, try to fetch session and wait
     if (!order) {
       try {
-        const session = await stripe.checkout.sessions.retrieve(
+        const session = await getStripe().checkout.sessions.retrieve(
           params.session_id
         );
         if (session.payment_status === "paid") {
@@ -197,9 +196,12 @@ export default async function OrderConfirmationPage({
       </div>
 
       {/* Actions */}
-      <div className="text-center">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button asChild className="bg-forest-600 hover:bg-forest-700">
           <Link href="/shop">Continue Shopping</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={`/order-status?order=${order.orderNumber}`}>Check Order Status</Link>
         </Button>
       </div>
     </div>

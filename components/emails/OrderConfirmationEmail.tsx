@@ -8,7 +8,6 @@ import {
   Text,
   Heading,
   Hr,
-  Link,
 } from "@react-email/components";
 
 interface OrderItem {
@@ -129,7 +128,7 @@ export function OrderConfirmationEmail({
           <Section style={styles.pickupSection}>
             <Heading style={styles.sectionTitle}>Pickup Details</Heading>
             <Text style={styles.text}>
-              Your order will be ready for pickup soon. We'll email you when it's ready.
+              Your order will be ready for pickup soon. We&apos;ll email you when it&apos;s ready.
             </Text>
             <Text style={styles.pickupAddress}>
               <strong>Essa Cafe</strong>
@@ -154,7 +153,7 @@ export function OrderConfirmationEmail({
               Essa Cafe - Local plants and seeds
             </Text>
             <Text style={styles.footerSmall}>
-              You're receiving this email because you placed an order on our website.
+              You&apos;re receiving this email because you placed an order on our website.
             </Text>
           </Section>
         </Container>

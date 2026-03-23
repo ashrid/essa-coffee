@@ -2,11 +2,10 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const error = searchParams.get("error");
   const token = searchParams.get("token");
   const callbackUrl = searchParams.get("callbackUrl") || "/admin";
@@ -50,7 +49,7 @@ function LoginForm() {
         const data = await response.json();
         setAuthError(data.error || "Failed to send magic link");
       }
-    } catch (err) {
+    } catch {
       setAuthError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
