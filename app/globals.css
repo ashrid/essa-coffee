@@ -4,42 +4,42 @@
 
 @layer base {
   :root {
-    /* Earthy/modern theme: cream backgrounds, forest greens */
-    --background: 40 50% 96%; /* cream-50: #fdf8f0 */
-    --foreground: 155 67% 8%; /* forest-900: #0a1f16 */
+    /* Green coffee bean theme */
+    --background: 80 40% 96%; /* cream-50: #f4f8ec */
+    --foreground: 94 70% 10%; /* forest-900: #162208 */
 
-    --card: 40 50% 96%;
-    --card-foreground: 155 67% 8%;
+    --card: 80 40% 96%;
+    --card-foreground: 94 70% 10%;
 
-    --popover: 40 50% 96%;
-    --popover-foreground: 155 67% 8%;
+    --popover: 80 40% 96%;
+    --popover-foreground: 94 70% 10%;
 
-    --primary: 155 43% 18%; /* forest-600: #1b4332 */
-    --primary-foreground: 40 50% 96%; /* cream-50: #fdf8f0 */
+    --primary: 94 48% 22%; /* forest-600: #345a16 */
+    --primary-foreground: 80 40% 96%; /* cream-50: #f4f8ec */
 
-    --secondary: 120 18% 88%; /* sage-100: #e8f0e8 */
-    --secondary-foreground: 155 43% 18%;
+    --secondary: 88 32% 86%; /* sage-100: #d8ebba */
+    --secondary-foreground: 94 48% 22%;
 
-    --muted: 120 18% 88%;
-    --muted-foreground: 155 30% 35%;
+    --muted: 88 28% 86%;
+    --muted-foreground: 94 30% 38%;
 
-    --accent: 120 18% 83%; /* sage-200: #c8d8c8 */
-    --accent-foreground: 155 43% 18%;
+    --accent: 88 28% 82%; /* sage-200: #bad690 */
+    --accent-foreground: 94 48% 22%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 40 50% 96%;
+    --destructive-foreground: 80 40% 96%;
 
-    --border: 35 30% 84%; /* bark-100: #e8dcc8 */
-    --input: 35 30% 84%;
-    --ring: 155 43% 18%;
+    --border: 85 28% 80%; /* bark-100: #dce8c4 */
+    --input: 85 28% 80%;
+    --ring: 94 48% 22%;
 
     --radius: 0.5rem;
 
-    --chart-1: 155 43% 18%;
-    --chart-2: 120 30% 53%;
-    --chart-3: 120 18% 65%;
-    --chart-4: 35 42% 40%;
-    --chart-5: 35 30% 78%;
+    --chart-1: 94 48% 22%;
+    --chart-2: 90 38% 42%;
+    --chart-3: 88 28% 58%;
+    --chart-4: 85 32% 38%;
+    --chart-5: 85 28% 72%;
   }
 }
 

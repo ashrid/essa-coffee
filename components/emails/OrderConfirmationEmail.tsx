@@ -105,7 +105,7 @@ export function OrderConfirmationEmail({
                 <tr>
                   <td
                     colSpan={2}
-                    style={{ ...styles.td, fontWeight: "bold", borderTop: "2px solid #3b1f0e" }}
+                    style={{ ...styles.td, fontWeight: "bold", borderTop: "2px solid #345a16" }}
                   >
                     Total
                   </td>
@@ -114,7 +114,7 @@ export function OrderConfirmationEmail({
                       ...styles.td,
                       fontWeight: "bold",
                       textAlign: "right",
-                      borderTop: "2px solid #3b1f0e",
+                      borderTop: "2px solid #345a16",
                     }}
                   >
                     ${total.toFixed(2)}
@@ -164,7 +164,7 @@ export function OrderConfirmationEmail({
 
 const styles = {
   body: {
-    backgroundColor: "#f5f1ed",
+    backgroundColor: "#f4f8ec",
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     margin: 0,
     padding: 0,
@@ -176,7 +176,7 @@ const styles = {
     padding: "20px",
   },
   header: {
-    backgroundColor: "#3b1f0e",
+    backgroundColor: "#345a16",
     borderRadius: "8px",
     padding: "24px",
     textAlign: "center" as const,
@@ -197,7 +197,7 @@ const styles = {
     marginTop: "24px",
   },
   sectionTitle: {
-    color: "#3b1f0e",
+    color: "#345a16",
     fontSize: "18px",
     fontWeight: "bold",
     margin: "0 0 12px 0",
@@ -221,7 +221,7 @@ const styles = {
   },
   orderNumberSection: {
     backgroundColor: "#f5f1ed",
-    border: "2px solid #3b1f0e",
+    border: "2px solid #345a16",
     borderRadius: "8px",
     marginTop: "24px",
     padding: "20px",
@@ -234,7 +234,7 @@ const styles = {
     textTransform: "uppercase" as const,
   },
   orderNumber: {
-    color: "#3b1f0e",
+    color: "#345a16",
     fontSize: "32px",
     fontWeight: "bold",
     letterSpacing: "2px",
@@ -245,8 +245,8 @@ const styles = {
     width: "100%",
   },
   th: {
-    borderBottom: "2px solid #3b1f0e",
-    color: "#3b1f0e",
+    borderBottom: "2px solid #345a16",
+    color: "#345a16",
     fontSize: "14px",
     fontWeight: "600",
     padding: "12px 8px",
@@ -260,7 +260,7 @@ const styles = {
     padding: "12px 8px",
   },
   pickupSection: {
-    backgroundColor: "#fdf8f0",
+    backgroundColor: "#edf5da",
     borderRadius: "8px",
     marginTop: "24px",
     padding: "20px",
