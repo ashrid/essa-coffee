@@ -43,16 +43,16 @@
 9. **Store displays pickup location and hours** — Customer sees pickup location, hours, and directions prominently on storefront and checkout
 10. **Store is mobile-responsive** — Store renders correctly and is fully usable on phone, tablet, and desktop with touch targets ≥48px
 
-**Plans:** 7 plans
+**Plans:** 7/7 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold: Next.js 15, Prisma schema, Tailwind earthy theme, shadcn/ui, seed data
-- [ ] 01-02-PLAN.md — Storefront UI: homepage, catalog grid, sidebar filters, search, product detail, pickup info
-- [ ] 01-03-PLAN.md — Cart system: Zustand store, cart drawer, cart page with quantity controls
-- [ ] 01-04-PLAN.md — Checkout + payments: 2-step checkout form, Stripe Checkout, pay-on-pickup, webhook, confirmation page
-- [ ] 01-05-PLAN.md — Email: React Email templates, Resend integration, customer + admin notifications
-- [ ] 01-06-PLAN.md — Admin panel: magic link auth, dashboard, product/order/category CRUD, inventory management
-- [ ] 01-07-PLAN.md — Human verification of complete Phase 1 MVP
+- [x] 01-01-PLAN.md — Project scaffold: Next.js 15, Prisma schema, Tailwind earthy theme, shadcn/ui, seed data
+- [x] 01-02-PLAN.md — Storefront UI: homepage, catalog grid, sidebar filters, search, product detail, pickup info
+- [x] 01-03-PLAN.md — Cart system: Zustand store, cart drawer, cart page with quantity controls
+- [x] 01-04-PLAN.md — Checkout + payments: 2-step checkout form, Stripe Checkout, pay-on-pickup, webhook, confirmation page
+- [x] 01-05-PLAN.md — Email: React Email templates, Resend integration, customer + admin notifications
+- [x] 01-06-PLAN.md — Admin panel: magic link auth, dashboard, product/order/category CRUD, inventory management
+- [x] 01-07-PLAN.md — Human verification of complete Phase 1 MVP (completed 2026-03-23)
 
 ---
 
@@ -62,12 +62,12 @@ Plans:
 
 **Requirements**: D-01 through D-20 (all locked decisions in 01.1-CONTEXT.md)
 **Depends on:** Phase 1
-**Plans:** 1/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 01.1-01-PLAN.md — Schema migration (isAvailable), validators, orders, cart store
-- [ ] 01.1-02-PLAN.md — Admin panel: ProductForm, DashboardStats, product API routes
-- [ ] 01.1-03-PLAN.md — Store palette, AvailabilityBadge, branding sweep, store pages
+- [x] 01.1-02-PLAN.md — Admin panel: ProductForm, DashboardStats, product API routes
+- [x] 01.1-03-PLAN.md — Store palette, AvailabilityBadge, branding sweep, store pages
 - [ ] 01.1-04-PLAN.md — Coffee seed data (4 categories, ~14 products) + human verification
 
 ### Phase 2: Launch & Validation
@@ -115,7 +115,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core MVP | 0/3 | Not started | — |
+| 1. Core MVP | 7/7 | Complete   | 2026-03-23 |
 | 2. Launch & Validation | 0/2 | Not started | — |
 | 3. Competitive Advantages | 0/1 | Not started | — |
 
