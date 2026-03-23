@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           products: {
             where: {
               slug: { not: slug },
-              stockQuantity: { gt: 0 },
+              isAvailable: true,
             },
             take: 3,
             include: { category: true },
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const isOutOfStock = product.stockQuantity === 0;
+  const isOutOfStock = !product.isAvailable;
   const relatedProducts = product.category.products;
 
   return (
@@ -117,10 +117,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <span className="text-2xl md:text-3xl font-bold text-forest-600">
               {formatPrice(Number(product.price))}
             </span>
-            <StockBadge
-              stockQuantity={product.stockQuantity}
-              lowStockThreshold={product.lowStockThreshold}
-            />
+            <StockBadge isAvailable={product.isAvailable} />
           </div>
 
           {/* Add to Cart Button */}
@@ -130,7 +127,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               name: product.name,
               price: Number(product.price),
               images: product.images,
-              stockQuantity: product.stockQuantity,
+              isAvailable: product.isAvailable,
               slug: product.slug,
             }}
             disabled={isOutOfStock}
@@ -149,18 +146,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           )}
 
-          {/* Care Instructions */}
-          {product.careInstructions && (
-            <div className="pt-6 border-t border-cream-200">
-              <h2 className="text-lg font-semibold text-forest-900 mb-3">
-                Care & Growing Instructions
-              </h2>
-              <div
-                className="prose prose-sm max-w-none text-forest-700"
-                dangerouslySetInnerHTML={{ __html: product.careInstructions }}
-              />
-            </div>
-          )}
         </div>
       </div>
 

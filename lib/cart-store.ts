@@ -8,7 +8,7 @@ export interface CartItem {
   price: number;
   image: string | null;
   slug: string;
-  stockQuantity: number;
+  isAvailable: boolean;
   quantity: number;
 }
 
@@ -35,7 +35,7 @@ export const useCartStore = create<CartStore>()(
         const items = get().items;
         const existing = items.find((item) => item.productId === product.productId);
         if (existing) {
-          const newQty = Math.min(existing.quantity + 1, product.stockQuantity);
+          const newQty = existing.quantity + 1;
           const updatedItems = items.map((item) =>
             item.productId === product.productId
               ? { ...item, quantity: newQty }
@@ -75,10 +75,7 @@ export const useCartStore = create<CartStore>()(
             subtotal: newItems.reduce((sum, i) => sum + i.price * i.quantity, 0),
           });
         } else {
-          const existing = items.find((item) => item.productId === productId);
-          const cappedQty = existing
-            ? Math.min(quantity, existing.stockQuantity)
-            : quantity;
+          const cappedQty = quantity;
           const newItems = items.map((item) =>
             item.productId === productId
               ? { ...item, quantity: cappedQty }
@@ -103,7 +100,7 @@ export const useCartStore = create<CartStore>()(
       subtotal: 0,
     }),
     {
-      name: "shop-seeds-cart",
+      name: "essa-cafe-cart",
       storage:
         typeof window !== "undefined"
           ? createJSONStorage(() => localStorage)

@@ -16,10 +16,9 @@ export const checkoutSchema = checkoutContactSchema.merge(checkoutPaymentSchema)
 export const productSchema = z.object({
   name: z.string().min(2).max(200),
   description: z.string().optional(),
-  careInstructions: z.string().optional(),
   price: z.number().positive().multipleOf(0.01),
-  stockQuantity: z.number().int().min(0),
-  lowStockThreshold: z.number().int().min(0).default(5),
+  isAvailable: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
   categoryId: z.string().cuid(),
   images: z.array(z.string().url()).max(5).default([]),
 });
@@ -31,6 +30,12 @@ export const categorySchema = z.object({
 
 export const orderStatusSchema = z.enum(["NEW", "READY", "COMPLETED", "CANCELLED", "REFUNDED"]);
 
+export const orderLookupSchema = z.object({
+  orderNumber: z.string().min(1, "Order number is required"),
+  email: z.string().email("Invalid email address"),
+});
+
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
+export type OrderLookupFormData = z.infer<typeof orderLookupSchema>;
 export type ProductFormData = z.infer<typeof productSchema>;
 export type CategoryFormData = z.infer<typeof categorySchema>;

@@ -22,13 +22,13 @@ export async function createOrderAtomically(
 ) {
   return prisma.$transaction(
     async (tx) => {
-      // 1. Re-fetch products and verify stock
+      // 1. Re-fetch products and verify availability
       for (const item of data.items) {
         const product = await tx.product.findUniqueOrThrow({
           where: { id: item.productId },
         });
-        if (product.stockQuantity < item.quantity) {
-          throw new Error(`INSUFFICIENT_STOCK:${product.name}`);
+        if (!product.isAvailable) {
+          throw new Error(`ITEM_UNAVAILABLE:${product.name}`);
         }
       }
 
@@ -55,14 +55,6 @@ export async function createOrderAtomically(
           },
         },
       });
-
-      // 4. Deduct stock atomically
-      for (const item of data.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stockQuantity: { decrement: item.quantity } },
-        });
-      }
 
       return order;
     },

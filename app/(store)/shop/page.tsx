@@ -29,7 +29,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   // Build where clause for products
   const where: {
     category?: { slug: string };
-    stockQuantity?: { gt: number };
+    isAvailable?: boolean;
   } = {};
 
   if (categorySlug) {
@@ -37,7 +37,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   }
 
   if (inStockOnly) {
-    where.stockQuantity = { gt: 0 };
+    where.isAvailable = true;
   }
 
   // Build orderBy clause

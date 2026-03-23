@@ -13,8 +13,7 @@ interface ProductCardProduct {
   slug: string;
   price: number | string | { toString(): string };
   images: string[];
-  stockQuantity: number;
-  lowStockThreshold: number;
+  isAvailable: boolean;
   category: {
     name: string;
   };
@@ -25,7 +24,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const isOutOfStock = product.stockQuantity === 0;
+  const isOutOfStock = !product.isAvailable;
 
   const handleAddToCart = () => {
     useCartStore.getState().addItem({
@@ -35,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
       price: Number(product.price),
       image: product.images[0] ?? null,
       slug: product.slug,
-      stockQuantity: product.stockQuantity,
+      isAvailable: product.isAvailable,
     });
     toast.success("Added to cart");
   };
@@ -81,10 +80,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-forest-600 font-semibold text-sm">
             {formatPrice(Number(product.price))}
           </span>
-          <StockBadge
-            stockQuantity={product.stockQuantity}
-            lowStockThreshold={product.lowStockThreshold}
-          />
+          <StockBadge isAvailable={product.isAvailable} />
         </div>
 
         <button

@@ -7,8 +7,7 @@ interface Product {
   slug: string;
   price: number | string | { toString(): string };
   images: string[];
-  stockQuantity: number;
-  lowStockThreshold: number;
+  isAvailable: boolean;
   category: {
     name: string;
   };

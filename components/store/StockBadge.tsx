@@ -1,28 +1,19 @@
 interface StockBadgeProps {
-  stockQuantity: number;
-  lowStockThreshold: number;
+  isAvailable: boolean;
 }
 
-export default function StockBadge({ stockQuantity, lowStockThreshold }: StockBadgeProps) {
-  if (stockQuantity === 0) {
+export default function StockBadge({ isAvailable }: StockBadgeProps) {
+  if (!isAvailable) {
     return (
       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-        Out of Stock
-      </span>
-    );
-  }
-
-  if (stockQuantity <= lowStockThreshold) {
-    return (
-      <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-        Low Stock
+        Unavailable
       </span>
     );
   }
 
   return (
     <span className="bg-sage-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-      In Stock
+      Available
     </span>
   );
 }

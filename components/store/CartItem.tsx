@@ -68,7 +68,6 @@ export function CartItem({ item }: CartItemProps) {
           <input
             type="number"
             min={1}
-            max={item.stockQuantity}
             value={item.quantity}
             onChange={handleInputChange}
             className="w-10 h-6 text-center text-sm border border-cream-200 rounded bg-white text-forest-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -76,7 +75,7 @@ export function CartItem({ item }: CartItemProps) {
           />
           <button
             onClick={() => handleQuantityChange(item.quantity + 1)}
-            disabled={item.quantity >= item.stockQuantity}
+            disabled={false}
             className="w-6 h-6 flex items-center justify-center rounded border border-cream-200 bg-white text-forest-600 hover:bg-cream-100 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Increase quantity"
           >

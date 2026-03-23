@@ -9,7 +9,7 @@ interface AddToCartButtonProps {
     name: string;
     price: number;
     images: string[];
-    stockQuantity: number;
+    isAvailable: boolean;
     slug: string;
   };
   disabled?: boolean;
@@ -27,7 +27,7 @@ export default function AddToCartButton({
       price: product.price,
       image: product.images[0] ?? null,
       slug: product.slug,
-      stockQuantity: product.stockQuantity,
+      isAvailable: product.isAvailable,
     });
     toast.success("Added to cart");
   };
