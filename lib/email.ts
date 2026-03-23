@@ -74,9 +74,9 @@ export async function sendOrderConfirmation(order: OrderWithItems): Promise<void
     );
 
     const result = await transporter.sendMail({
-      from: `"ShopSeeds" <${process.env.GMAIL_USER}>`,
+      from: `"Essa Cafe" <${process.env.GMAIL_USER}>`,
       to: order.guestEmail,
-      subject: `Order Confirmed #${order.orderNumber} — ShopSeeds`,
+      subject: `Order Confirmed #${order.orderNumber} — Essa Cafe`,
       html,
     });
 
@@ -134,9 +134,9 @@ export async function sendAdminNewOrderNotification(
     );
 
     const result = await transporter.sendMail({
-      from: `"ShopSeeds" <${process.env.GMAIL_USER}>`,
+      from: `"Essa Cafe" <${process.env.GMAIL_USER}>`,
       to: adminEmail,
-      subject: `New Order #${order.orderNumber} — ShopSeeds`,
+      subject: `New Order #${order.orderNumber} — Essa Cafe`,
       html,
     });
 
@@ -164,15 +164,15 @@ export async function sendMagicLinkEmail(email: string, magicLink: string): Prom
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign in to ShopSeeds</title>
+  <title>Sign in to Essa Cafe</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: #166534; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">ShopSeeds Admin</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Essa Cafe Admin</h1>
   </div>
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
     <p style="font-size: 16px; margin-bottom: 20px;">Hi there,</p>
-    <p style="font-size: 16px; margin-bottom: 20px;">Click the button below to sign in to your ShopSeeds admin account:</p>
+    <p style="font-size: 16px; margin-bottom: 20px;">Click the button below to sign in to your Essa Cafe admin account:</p>
     <div style="text-align: center; margin: 30px 0;">
       <a href="${magicLink}" style="display: inline-block; background: #166534; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Sign In to Admin</a>
     </div>
@@ -187,9 +187,9 @@ export async function sendMagicLinkEmail(email: string, magicLink: string): Prom
     `;
 
     const result = await transporter.sendMail({
-      from: `"ShopSeeds" <${process.env.GMAIL_USER}>`,
+      from: `"Essa Cafe" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: "Sign in to ShopSeeds Admin",
+      subject: "Sign in to Essa Cafe Admin",
       html,
     });
 
