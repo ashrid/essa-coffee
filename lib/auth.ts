@@ -32,9 +32,18 @@ export function verifyMagicToken(token: string): string | null {
   return data.email;
 }
 
+function getAdminEmails(): string[] {
+  const extra = process.env.ADMIN_EMAILS ?? "";
+  const base = process.env.ADMIN_EMAIL ?? "";
+  const all = [base, ...extra.split(",")]
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return [...new Set(all)];
+}
+
 export async function sendMagicLink(email: string, callbackUrl: string) {
-  // Only allow ADMIN_EMAIL to request magic links
-  if (email !== process.env.ADMIN_EMAIL) {
+  // Only allow admin emails to request magic links
+  if (!getAdminEmails().includes(email.toLowerCase())) {
     throw new Error("Unauthorized email address");
   }
 
@@ -68,8 +77,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const email = verifyMagicToken(credentials.token as string);
         if (!email) return null;
 
-        // Only allow ADMIN_EMAIL to sign in
-        if (email !== process.env.ADMIN_EMAIL) {
+        // Only allow admin emails to sign in
+        if (!getAdminEmails().includes(email.toLowerCase())) {
           return null;
         }
 

@@ -8,6 +8,7 @@ type OrderStatus = "NEW" | "READY" | "COMPLETED" | "CANCELLED" | "REFUNDED";
 interface OrderStatusSelectProps {
   orderId: string;
   currentStatus: OrderStatus;
+  onStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
 }
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -26,7 +27,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   REFUNDED: "Refunded",
 };
 
-export function OrderStatusSelect({ orderId, currentStatus }: OrderStatusSelectProps) {
+export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: OrderStatusSelectProps) {
   const [status, setStatus] = useState<OrderStatus>(currentStatus);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,6 +46,7 @@ export function OrderStatusSelect({ orderId, currentStatus }: OrderStatusSelectP
       }
 
       setStatus(newStatus);
+      onStatusChange?.(orderId, newStatus);
       toast.success(`Order status updated to ${STATUS_LABELS[newStatus]}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update status");

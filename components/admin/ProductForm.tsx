@@ -171,7 +171,7 @@ export function ProductForm({
 
       {/* Price */}
       <div>
-        <label className={labelClass}>Price ($) *</label>
+        <label className={labelClass}>Price (AED) *</label>
         <input
           type="number"
           value={price}

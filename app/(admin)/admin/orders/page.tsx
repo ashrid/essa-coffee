@@ -55,6 +55,12 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
+  const handleStatusChange = useCallback((orderId: string, newStatus: OrderStatus) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
+  }, []);
+
   const filteredOrders = orders.filter((o) => {
     if (activeTab === "ALL") return true;
     if (activeTab === "CANCELLED") return o.status === "CANCELLED" || o.status === "REFUNDED";
@@ -132,6 +138,7 @@ export default function AdminOrdersPage() {
                     <OrderStatusSelect
                       orderId={order.id}
                       currentStatus={order.status}
+                      onStatusChange={handleStatusChange}
                     />
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">
