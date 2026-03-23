@@ -92,11 +92,11 @@ export async function POST(request: NextRequest) {
         },
       })) as OrderWithItems;
 
-      // Send emails (non-blocking - don't await, catch errors)
-      Promise.allSettled([
+      // Send emails - await so Vercel doesn't kill the function before SMTP finishes
+      await Promise.allSettled([
         sendOrderConfirmation(orderWithItems),
         sendAdminNewOrderNotification(orderWithItems),
-      ]).catch(console.error);
+      ]);
     } catch (error) {
       console.error("Failed to create order from webhook:", error);
       // Return 500 so Stripe retries
