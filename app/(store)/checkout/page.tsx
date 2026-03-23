@@ -21,13 +21,14 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [contactData, setContactData] = useState<ContactData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
 
-  // Redirect to cart if empty
+  // Redirect to cart if empty (but not during order completion)
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !orderComplete) {
       router.push("/cart");
     }
-  }, [items.length, router]);
+  }, [items.length, router, orderComplete]);
 
   const handleContactNext = (data: ContactData) => {
     setContactData(data);
@@ -68,8 +69,10 @@ export default function CheckoutPage() {
       }
 
       if (paymentMethod === "PAY_ON_PICKUP") {
-        clearCart();
+        // Mark order complete to prevent empty cart redirect, then navigate, then clear cart
+        setOrderComplete(true);
         router.push(`/order-confirmation?orderId=${data.orderId}`);
+        clearCart();
       } else {
         // Stripe redirect
         window.location.href = data.checkoutUrl;
@@ -81,7 +84,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderComplete) {
     return null; // Will redirect
   }
 

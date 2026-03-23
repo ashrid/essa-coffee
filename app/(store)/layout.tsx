@@ -14,7 +14,7 @@ export default function StoreLayout({
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />
-      <Toaster position="bottom-right" richColors />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

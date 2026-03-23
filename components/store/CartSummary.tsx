@@ -6,9 +6,10 @@ interface CartSummaryProps {
   itemCount: number;
   ctaHref: string;
   ctaLabel: string;
+  onClick?: () => void;
 }
 
-export function CartSummary({ subtotal, itemCount, ctaHref, ctaLabel }: CartSummaryProps) {
+export function CartSummary({ subtotal, itemCount, ctaHref, ctaLabel, onClick }: CartSummaryProps) {
   return (
     <div className="border-t border-cream-200 pt-4 space-y-3">
       <div className="flex items-center justify-between text-sm text-sage-500">
@@ -20,6 +21,7 @@ export function CartSummary({ subtotal, itemCount, ctaHref, ctaLabel }: CartSumm
       </div>
       <Link
         href={ctaHref}
+        onClick={onClick}
         className="block w-full text-center bg-forest-600 hover:bg-forest-700 text-cream-50 font-medium py-2.5 px-4 rounded-md transition-colors text-sm"
       >
         {ctaLabel}
