@@ -46,6 +46,7 @@ model Order {
   guestEmail      String
   guestPhone      String?
   guestNotes      String?
+  pickupTime      DateTime?
   status          OrderStatus   @default(NEW)
   paymentMethod   PaymentMethod @default(PAY_ON_PICKUP)
   stripeSessionId String?
@@ -53,6 +54,10 @@ model Order {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   items           OrderItem[]
+
+  // QR Code fields for pickup verification
+  qrToken          String?   @unique
+  qrTokenExpiresAt DateTime?
 
   @@index([status])
   @@index([createdAt(sort: Desc)])

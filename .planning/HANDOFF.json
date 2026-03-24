@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-24T15:22:09Z",
+  "phase": null,
+  "phase_name": "Order Status Notifications + QR Pickup",
+  "phase_dir": null,
+  "plan": null,
+  "task": 2,
+  "total_tasks": 10,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Database migration for QR token fields", "status": "done", "commit": null}
+  ],
+  "remaining_tasks": [
+    {"id": 2, "name": "Email library functions for status notifications", "status": "not_started"},
+    {"id": 3, "name": "React Email components for status emails", "status": "not_started"},
+    {"id": 4, "name": "API route for QR verification", "status": "not_started"},
+    {"id": 5, "name": "API route for QR resend", "status": "not_started"},
+    {"id": 6, "name": "Update admin orders API for QR flow", "status": "not_started"},
+    {"id": 7, "name": "Admin QR scan page", "status": "not_started"},
+    {"id": 8, "name": "Update admin order detail UI", "status": "not_started"},
+    {"id": 9, "name": "Update confirmation email", "status": "not_started"},
+    {"id": 10, "name": "Test QR pickup flow", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "Use Option 3+4 hybrid: Smart notifications + QR pickup", "rationale": "Customer wants email on status changes AND QR code for pickup verification", "phase": null},
+    {"decision": "QR token expires in 7 days", "rationale": "Requested by user, with ability to reissue if customer deletes email", "phase": null},
+    {"decision": "Auto-redirect to scan page after completion", "rationale": "Enables rapid order processing for next customer", "phase": null},
+    {"decision": "Show only name/details (no photo) on scan page", "rationale": "User preference for simpler UI", "phase": null},
+    {"decision": "Use crypto.randomBytes(32) for token generation", "rationale": "Security requirement - tokens must be cryptographically random", "phase": null}
+  ],
+  "uncommitted_files": [
+    "prisma/schema.prisma",
+    "prisma/migrations/20260324151836_add_qr_token_fields/",
+    "prisma/migrations/20260324161500_add_qr_token_fields/",
+    "docs/plans/2026-03-24-order-status-qr-design.md",
+    "docs/plans/2026-03-24-order-status-qr-implementation-guide.md"
+  ],
+  "next_action": "Install qrcode package and add email library functions (sendOrderReadyEmail, sendOrderStatusUpdateEmail, generateQRToken)",
+  "context_notes": "Database migration is complete. Prisma schema now has qrToken and qrTokenExpiresAt fields. Migration has been applied to PostgreSQL database. Ready to implement email functions and QR generation. The design uses a hybrid approach: email notifications on status changes (READY, CANCELLED, REFUNDED) plus QR code in READY email for pickup verification. Admin scans QR with phone browser to mark orders complete."
+}
