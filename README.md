@@ -142,3 +142,9 @@ Access at `/admin` — login uses a magic link sent to `ADMIN_EMAIL`.
 ## Currency
 
 Prices are stored and displayed in **AED (UAE Dirham)**. To change currency, update `CURRENCY` references in `lib/utils.ts`.
+
+---
+
+## Code Walkthrough
+
+Want to understand how the codebase works? Open `course.html` in your browser for an interactive guide that explains the architecture, components, and data flow — no coding experience required.
