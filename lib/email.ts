@@ -219,13 +219,13 @@ export function generateQRToken(): { token: string; expiresAt: Date } {
 }
 
 /**
- * Generate QR code data URL for embedding in emails
+ * Generate QR code as PNG buffer for email attachment
  */
-export async function generateQRCodeDataUrl(token: string): Promise<string> {
+export async function generateQRCodeBuffer(token: string): Promise<Buffer> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const scanUrl = `${baseUrl}/admin/scan?token=${token}`;
 
-  return QRCode.toDataURL(scanUrl, {
+  return QRCode.toBuffer(scanUrl, {
     width: 400,
     margin: 2,
     color: {
@@ -263,8 +263,9 @@ export async function sendOrderReadyEmail(
     const trackingUrl = `${baseUrl}/order-status?order=${order.orderNumber}`;
     const scanUrl = `${baseUrl}/admin/scan?token=${qrToken}`;
 
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await generateQRCodeDataUrl(qrToken);
+    // Generate QR code as buffer for attachment
+    const qrCodeBuffer = await generateQRCodeBuffer(qrToken);
+    const cid = `qr-code-${order.orderNumber}`;
 
     const html = await render(
       OrderReadyEmail({
@@ -273,7 +274,7 @@ export async function sendOrderReadyEmail(
         items,
         total,
         pickupTime: order.pickupTime,
-        qrCodeDataUrl,
+        qrCodeCid: cid,
         scanUrl,
         trackingUrl,
       })
@@ -284,6 +285,14 @@ export async function sendOrderReadyEmail(
       to: order.guestEmail,
       subject: `Your Order #${order.orderNumber} is Ready for Pickup — Essa Cafe`,
       html,
+      attachments: [
+        {
+          filename: `qr-code-${order.orderNumber}.png`,
+          content: qrCodeBuffer,
+          cid: cid,
+          contentType: "image/png",
+        },
+      ],
     });
 
     console.log("Order ready email sent:", result.messageId);

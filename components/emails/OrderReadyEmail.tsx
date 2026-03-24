@@ -23,7 +23,7 @@ interface OrderReadyEmailProps {
   items: OrderItem[];
   total: number;
   pickupTime?: Date | null;
-  qrCodeDataUrl: string;
+  qrCodeCid: string;
   scanUrl: string;
   trackingUrl: string;
 }
@@ -45,7 +45,7 @@ export function OrderReadyEmail({
   items,
   total,
   pickupTime,
-  qrCodeDataUrl,
+  qrCodeCid,
   scanUrl,
   trackingUrl,
 }: OrderReadyEmailProps) {
@@ -87,7 +87,7 @@ export function OrderReadyEmail({
             </Text>
             <div style={styles.qrContainer}>
               <Img
-                src={qrCodeDataUrl}
+                src={`cid:${qrCodeCid}`}
                 alt="Pickup QR Code"
                 width={300}
                 height={300}
