@@ -27,6 +27,18 @@ interface AdminNewOrderEmailProps {
   total: number;
   paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
   adminUrl: string;
+  pickupTime?: Date | null;
+}
+
+function formatPickupTime(date: Date): string {
+  return new Date(date).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 export function AdminNewOrderEmail({
@@ -38,6 +50,7 @@ export function AdminNewOrderEmail({
   total,
   paymentMethod,
   adminUrl,
+  pickupTime,
 }: AdminNewOrderEmailProps) {
   const isPayOnPickup = paymentMethod === "PAY_ON_PICKUP";
 
@@ -69,6 +82,17 @@ export function AdminNewOrderEmail({
               </span>
             </Text>
           </Section>
+
+          {/* Scheduled Pickup Time - Highlight for Pay on Pickup */}
+          {isPayOnPickup && pickupTime && (
+            <Section style={styles.pickupTimeSection}>
+              <Heading style={styles.sectionTitle}>Scheduled Pickup</Heading>
+              <Text style={styles.pickupTime}>{formatPickupTime(pickupTime)}</Text>
+              <Text style={styles.pickupNote}>
+                Customer will pay on arrival. Please have order ready by this time.
+              </Text>
+            </Section>
+          )}
 
           {/* Customer Details */}
           <Section style={styles.section}>
@@ -216,6 +240,24 @@ const styles = {
     fontSize: "14px",
     fontWeight: "600",
     padding: "6px 16px",
+  },
+  pickupTimeSection: {
+    backgroundColor: "#ecfdf5",
+    border: "2px solid #059669",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "20px",
+  },
+  pickupTime: {
+    color: "#065f46",
+    fontSize: "24px",
+    fontWeight: "bold",
+    margin: "0 0 8px 0",
+  },
+  pickupNote: {
+    color: "#059669",
+    fontSize: "14px",
+    margin: 0,
   },
   customerDetails: {
     backgroundColor: "#f9fafb",

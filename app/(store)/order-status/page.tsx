@@ -3,13 +3,14 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Package, Search, ArrowLeft, Calendar, CreditCard, User } from 'lucide-react';
+import { Package, Search, ArrowLeft, Calendar, CreditCard, User, Clock, QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { OrderStatusBadge } from '@/components/store/OrderStatusBadge';
 import { OrderTimeline } from '@/components/store/OrderTimeline';
 import { formatPrice } from '@/lib/utils';
+import QRCode from 'qrcode';
 
 type OrderStatus = 'NEW' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
@@ -26,10 +27,25 @@ interface OrderData {
   guestEmail: string;
   guestPhone: string | null;
   guestNotes: string | null;
+  pickupTime: string | null;
   items: OrderItem[];
   total: string;
   paymentMethod: string;
   createdAt: string;
+  qrToken: string | null;
+  qrTokenExpiresAt: string | null;
+}
+
+function formatPickupTime(dateString: string): string {
+  return new Date(dateString).toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 function OrderStatusContent() {
@@ -41,6 +57,8 @@ function OrderStatusContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [order, setOrder] = useState<OrderData | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
   // Update order number if query param changes
   useEffect(() => {
@@ -48,6 +66,18 @@ function OrderStatusContent() {
       setOrderNumber(prefillOrderNumber);
     }
   }, [prefillOrderNumber]);
+
+  // Generate QR code data URL when order has a token
+  useEffect(() => {
+    if (order?.qrToken && !qrDataUrl && !isGeneratingQR) {
+      setIsGeneratingQR(true);
+      const scanUrl = `${window.location.origin}/admin/scan?token=${encodeURIComponent(order.qrToken)}`;
+      QRCode.toDataURL(scanUrl, { width: 256, margin: 2 })
+        .then(setQrDataUrl)
+        .catch(() => console.error('Failed to generate QR code'))
+        .finally(() => setIsGeneratingQR(false));
+    }
+  }, [order?.qrToken, qrDataUrl, isGeneratingQR]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,6 +144,57 @@ function OrderStatusContent() {
           <OrderTimeline status={order.status} />
         </div>
 
+        {/* QR Code Section - Only for READY orders */}
+        {order.status === 'READY' && order.qrToken && (
+          <div className="bg-forest-50 border border-forest-200 rounded-xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <QrCode className="w-5 h-5 text-forest-600" />
+              <h2 className="text-lg font-semibold text-forest-900">Pickup QR Code</h2>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-6 items-start">
+              {/* QR Code Image */}
+              <div className="bg-white p-4 rounded-lg border border-forest-200 mx-auto sm:mx-0">
+                {isGeneratingQR ? (
+                  <div className="w-48 h-48 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-forest-600 animate-spin" />
+                  </div>
+                ) : qrDataUrl ? (
+                  <img src={qrDataUrl} alt="Pickup QR Code" className="w-48 h-48" />
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center text-forest-400 text-sm">
+                    Failed to load
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 space-y-3 text-center sm:text-left">
+                <p className="text-forest-700">
+                  Show this QR code to staff when picking up your order.
+                </p>
+                {order.qrTokenExpiresAt && (
+                  <p className="text-sm text-forest-600">
+                    Expires:{" "}
+                    <span className="font-medium">
+                      {new Date(order.qrTokenExpiresAt).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
+                  </p>
+                )}
+                <p className="text-xs text-forest-500 pt-2">
+                  Staff will scan this code to verify and complete your order.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Order Details */}
         <div className="bg-white border border-cream-200 rounded-xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-forest-900 mb-4">Order Details</h2>
@@ -157,6 +238,19 @@ function OrderStatusContent() {
                 </p>
               </div>
             </div>
+
+            {/* Scheduled Pickup Time - Only for Pay on Pickup with pickupTime */}
+            {order.paymentMethod === 'PAY_ON_PICKUP' && order.pickupTime && (
+              <div className="flex items-start gap-3 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                <Clock className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-emerald-900">Scheduled Pickup</p>
+                  <p className="text-sm text-emerald-700">
+                    {formatPickupTime(order.pickupTime)}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Notes */}

@@ -16,73 +16,72 @@ interface OrderItem {
   price: number;
 }
 
-interface OrderConfirmationEmailProps {
+interface OrderStatusUpdateEmailProps {
   orderNumber: string;
   guestName: string;
   items: OrderItem[];
   total: number;
-  paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
-  pickupTime?: Date | null;
+  status: "CANCELLED" | "REFUNDED";
+  trackingUrl: string;
 }
 
-function formatPickupTime(date: Date): string {
-  return new Date(date).toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-export function OrderConfirmationEmail({
+export function OrderStatusUpdateEmail({
   orderNumber,
   guestName,
   items,
   total,
-  paymentMethod,
-  pickupTime,
-}: OrderConfirmationEmailProps) {
-  const isPayOnPickup = paymentMethod === "PAY_ON_PICKUP";
+  status,
+  trackingUrl,
+}: OrderStatusUpdateEmailProps) {
+  const isCancelled = status === "CANCELLED";
+  const title = isCancelled ? "Order Cancelled" : "Order Refunded";
+  const bannerColor = isCancelled ? "#fef2f2" : "#f0f9ff";
+  const bannerBorderColor = isCancelled ? "#dc2626" : "#0284c7";
+  const bannerTextColor = isCancelled ? "#991b1b" : "#0369a1";
+  const message = isCancelled
+    ? "Your order has been cancelled. No payment has been charged."
+    : "Your order has been refunded. The refund will be processed within 5-10 business days.";
 
   return (
     <Html>
       <Head />
       <Preview>
-        Your order #{orderNumber} has been confirmed - Essa Cafe
+        Order #{orderNumber} {isCancelled ? "cancelled" : "refunded"} - Essa Cafe
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           {/* Header */}
           <Section style={styles.header}>
             <Heading style={styles.logo}>Essa Cafe</Heading>
-            <Heading style={styles.title}>Order Confirmed!</Heading>
+            <Heading style={styles.title}>{title}</Heading>
           </Section>
 
-          {/* Greeting */}
-          <Section style={styles.section}>
-            <Text style={styles.text}>
-              Hi {guestName}, your order is confirmed!
-            </Text>
-          </Section>
-
-          {/* Payment Banner */}
+          {/* Status Banner */}
           <Section
             style={{
               ...styles.banner,
-              backgroundColor: isPayOnPickup ? "#fef3c7" : "#d1fae5",
+              backgroundColor: bannerColor,
+              borderColor: bannerBorderColor,
             }}
           >
             <Text
               style={{
                 ...styles.bannerText,
-                color: isPayOnPickup ? "#92400e" : "#065f46",
+                color: bannerTextColor,
               }}
             >
-              {isPayOnPickup
-                ? "You've selected pay on pickup — bring cash or card when you arrive"
-                : "Payment received — thank you!"}
+              {message}
+            </Text>
+          </Section>
+
+          {/* Greeting */}
+          <Section style={styles.section}>
+            <Text style={styles.text}>
+              Hi {guestName},
+            </Text>
+            <Text style={styles.text}>
+              We&apos;re writing to inform you that your order has been{" "}
+              {isCancelled ? "cancelled" : "refunded"}.
             </Text>
           </Section>
 
@@ -91,14 +90,6 @@ export function OrderConfirmationEmail({
             <Text style={styles.orderNumberLabel}>Order Number</Text>
             <Text style={styles.orderNumber}>{orderNumber}</Text>
           </Section>
-
-          {/* Pickup Time - Highlighted for Pay on Pickup */}
-          {isPayOnPickup && pickupTime && (
-            <Section style={styles.pickupTimeSection}>
-              <Text style={styles.pickupTimeLabel}>Scheduled Pickup Time</Text>
-              <Text style={styles.pickupTime}>{formatPickupTime(pickupTime)}</Text>
-            </Section>
-          )}
 
           {/* Items Table */}
           <Section style={styles.section}>
@@ -145,26 +136,49 @@ export function OrderConfirmationEmail({
             </table>
           </Section>
 
-          {/* Pickup Details */}
-          <Section style={styles.pickupSection}>
-            <Heading style={styles.sectionTitle}>Pickup Details</Heading>
+          {/* Refund Details for Refunded Orders */}
+          {!isCancelled && (
+            <Section style={styles.refundSection}>
+              <Heading style={styles.sectionTitle}>Refund Details</Heading>
+              <Text style={styles.text}>
+                <strong>Refund Amount:</strong> ${total.toFixed(2)}
+              </Text>
+              <Text style={styles.text}>
+                <strong>Processing Time:</strong> 5-10 business days
+              </Text>
+              <Text style={styles.text}>
+                The refund will be credited back to your original payment method.
+              </Text>
+            </Section>
+          )}
+
+          {/* Track Order */}
+          <Section style={styles.trackSection}>
+            <Heading style={styles.sectionTitle}>Order Status</Heading>
             <Text style={styles.text}>
-              {isPayOnPickup && pickupTime
-                ? `Please arrive at the scheduled pickup time. We'll have your order ready!`
-                : "Your order will be ready for pickup soon. We'll email you when it's ready."}
+              You can view your order details anytime:
             </Text>
-            <Text style={styles.pickupAddress}>
+            <div style={styles.buttonContainer}>
+              <a href={trackingUrl} style={styles.button}>
+                View Order Status
+              </a>
+            </div>
+          </Section>
+
+          {/* Questions */}
+          <Section style={styles.questionsSection}>
+            <Text style={styles.text}>
+              If you have any questions or need assistance, please reply to this email
+              or contact us during business hours.
+            </Text>
+            <Text style={styles.text}>
               <strong>Essa Cafe</strong>
               <br />
               123 Green Street
               <br />
               Your City, State 00000
-            </Text>
-            <Text style={styles.text}>
-              <strong>Hours:</strong> Mon–Fri 9am–6pm, Sat 9am–5pm
-            </Text>
-            <Text style={styles.text}>
-              Questions? Reply to this email
+              <br />
+              Mon–Fri 9am–6pm, Sat 9am–5pm
             </Text>
           </Section>
 
@@ -216,6 +230,18 @@ const styles = {
     fontWeight: "bold",
     margin: 0,
   },
+  banner: {
+    border: "2px solid",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "16px",
+    textAlign: "center" as const,
+  },
+  bannerText: {
+    fontSize: "16px",
+    fontWeight: "500",
+    margin: 0,
+  },
   section: {
     marginTop: "24px",
   },
@@ -230,17 +256,6 @@ const styles = {
     fontSize: "16px",
     lineHeight: "1.5",
     margin: "0 0 12px 0",
-  },
-  banner: {
-    borderRadius: "8px",
-    marginTop: "24px",
-    padding: "16px",
-    textAlign: "center" as const,
-  },
-  bannerText: {
-    fontSize: "16px",
-    fontWeight: "500",
-    margin: 0,
   },
   orderNumberSection: {
     backgroundColor: "#f5f1ed",
@@ -263,26 +278,6 @@ const styles = {
     letterSpacing: "2px",
     margin: 0,
   },
-  pickupTimeSection: {
-    backgroundColor: "#ecfdf5",
-    border: "2px solid #059669",
-    borderRadius: "8px",
-    marginTop: "24px",
-    padding: "20px",
-    textAlign: "center" as const,
-  },
-  pickupTimeLabel: {
-    color: "#059669",
-    fontSize: "14px",
-    margin: "0 0 8px 0",
-    textTransform: "uppercase" as const,
-  },
-  pickupTime: {
-    color: "#065f46",
-    fontSize: "24px",
-    fontWeight: "bold",
-    margin: 0,
-  },
   table: {
     borderCollapse: "collapse" as const,
     width: "100%",
@@ -302,17 +297,39 @@ const styles = {
     fontSize: "14px",
     padding: "12px 8px",
   },
-  pickupSection: {
-    backgroundColor: "#edf5da",
+  refundSection: {
+    backgroundColor: "#f0f9ff",
+    border: "2px solid #0284c7",
     borderRadius: "8px",
     marginTop: "24px",
     padding: "20px",
   },
-  pickupAddress: {
-    color: "#374151",
+  trackSection: {
+    backgroundColor: "#f5f3ff",
+    border: "2px solid #7c3aed",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "20px",
+    textAlign: "center" as const,
+  },
+  buttonContainer: {
+    marginTop: "16px",
+  },
+  button: {
+    backgroundColor: "#7c3aed",
+    borderRadius: "6px",
+    color: "#ffffff",
+    display: "inline-block",
     fontSize: "16px",
-    lineHeight: "1.6",
-    margin: "16px 0",
+    fontWeight: "600",
+    padding: "14px 28px",
+    textDecoration: "none",
+  },
+  questionsSection: {
+    backgroundColor: "#edf5da",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "20px",
   },
   hr: {
     borderColor: "#e5e7eb",

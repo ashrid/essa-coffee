@@ -5,6 +5,7 @@ export const checkoutContactSchema = z.object({
   guestEmail: z.string().email("Invalid email address"),
   guestPhone: z.string().min(10, "Phone must be at least 10 digits").optional().or(z.literal("")),
   guestNotes: z.string().max(500).optional(),
+  pickupTime: z.string().optional(),
 });
 
 export const checkoutPaymentSchema = z.object({

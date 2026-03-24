@@ -8,6 +8,7 @@ import {
   Text,
   Heading,
   Hr,
+  Img,
 } from "@react-email/components";
 
 interface OrderItem {
@@ -16,13 +17,15 @@ interface OrderItem {
   price: number;
 }
 
-interface OrderConfirmationEmailProps {
+interface OrderReadyEmailProps {
   orderNumber: string;
   guestName: string;
   items: OrderItem[];
   total: number;
-  paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
   pickupTime?: Date | null;
+  qrCodeDataUrl: string;
+  scanUrl: string;
+  trackingUrl: string;
 }
 
 function formatPickupTime(date: Date): string {
@@ -36,53 +39,37 @@ function formatPickupTime(date: Date): string {
   });
 }
 
-export function OrderConfirmationEmail({
+export function OrderReadyEmail({
   orderNumber,
   guestName,
   items,
   total,
-  paymentMethod,
   pickupTime,
-}: OrderConfirmationEmailProps) {
-  const isPayOnPickup = paymentMethod === "PAY_ON_PICKUP";
-
+  qrCodeDataUrl,
+  scanUrl,
+  trackingUrl,
+}: OrderReadyEmailProps) {
   return (
     <Html>
       <Head />
       <Preview>
-        Your order #{orderNumber} has been confirmed - Essa Cafe
+        Your order #{orderNumber} is ready for pickup - Essa Cafe
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           {/* Header */}
           <Section style={styles.header}>
             <Heading style={styles.logo}>Essa Cafe</Heading>
-            <Heading style={styles.title}>Order Confirmed!</Heading>
+            <Heading style={styles.title}>Your Order is Ready!</Heading>
           </Section>
 
           {/* Greeting */}
           <Section style={styles.section}>
             <Text style={styles.text}>
-              Hi {guestName}, your order is confirmed!
+              Hi {guestName}, your order is ready for pickup!
             </Text>
-          </Section>
-
-          {/* Payment Banner */}
-          <Section
-            style={{
-              ...styles.banner,
-              backgroundColor: isPayOnPickup ? "#fef3c7" : "#d1fae5",
-            }}
-          >
-            <Text
-              style={{
-                ...styles.bannerText,
-                color: isPayOnPickup ? "#92400e" : "#065f46",
-              }}
-            >
-              {isPayOnPickup
-                ? "You've selected pay on pickup — bring cash or card when you arrive"
-                : "Payment received — thank you!"}
+            <Text style={styles.text}>
+              Please bring your QR code when you come to collect your order.
             </Text>
           </Section>
 
@@ -92,10 +79,37 @@ export function OrderConfirmationEmail({
             <Text style={styles.orderNumber}>{orderNumber}</Text>
           </Section>
 
-          {/* Pickup Time - Highlighted for Pay on Pickup */}
-          {isPayOnPickup && pickupTime && (
+          {/* QR Code Section */}
+          <Section style={styles.qrSection}>
+            <Heading style={styles.sectionTitle}>Your Pickup QR Code</Heading>
+            <Text style={styles.qrInstructions}>
+              Show this code to our staff when picking up your order.
+            </Text>
+            <div style={styles.qrContainer}>
+              <Img
+                src={qrCodeDataUrl}
+                alt="Pickup QR Code"
+                width={300}
+                height={300}
+                style={styles.qrImage}
+              />
+            </div>
+            <Text style={styles.qrFallback}>
+              If the QR code doesn&apos;t display, use this link:
+              <br />
+              <a href={scanUrl} style={styles.qrLink}>
+                {scanUrl}
+              </a>
+            </Text>
+            <Text style={styles.qrExpiry}>
+              This QR code is valid for 7 days.
+            </Text>
+          </Section>
+
+          {/* Pickup Time */}
+          {pickupTime && (
             <Section style={styles.pickupTimeSection}>
-              <Text style={styles.pickupTimeLabel}>Scheduled Pickup Time</Text>
+              <Text style={styles.pickupTimeLabel}>Scheduled Pickup</Text>
               <Text style={styles.pickupTime}>{formatPickupTime(pickupTime)}</Text>
             </Section>
           )}
@@ -145,14 +159,22 @@ export function OrderConfirmationEmail({
             </table>
           </Section>
 
+          {/* Track Order */}
+          <Section style={styles.trackSection}>
+            <Heading style={styles.sectionTitle}>Track Your Order</Heading>
+            <Text style={styles.text}>
+              You can check your order status anytime using the link below:
+            </Text>
+            <div style={styles.buttonContainer}>
+              <a href={trackingUrl} style={styles.button}>
+                Track Order Status
+              </a>
+            </div>
+          </Section>
+
           {/* Pickup Details */}
           <Section style={styles.pickupSection}>
-            <Heading style={styles.sectionTitle}>Pickup Details</Heading>
-            <Text style={styles.text}>
-              {isPayOnPickup && pickupTime
-                ? `Please arrive at the scheduled pickup time. We'll have your order ready!`
-                : "Your order will be ready for pickup soon. We'll email you when it's ready."}
-            </Text>
+            <Heading style={styles.sectionTitle}>Pickup Location</Heading>
             <Text style={styles.pickupAddress}>
               <strong>Essa Cafe</strong>
               <br />
@@ -162,9 +184,6 @@ export function OrderConfirmationEmail({
             </Text>
             <Text style={styles.text}>
               <strong>Hours:</strong> Mon–Fri 9am–6pm, Sat 9am–5pm
-            </Text>
-            <Text style={styles.text}>
-              Questions? Reply to this email
             </Text>
           </Section>
 
@@ -231,17 +250,6 @@ const styles = {
     lineHeight: "1.5",
     margin: "0 0 12px 0",
   },
-  banner: {
-    borderRadius: "8px",
-    marginTop: "24px",
-    padding: "16px",
-    textAlign: "center" as const,
-  },
-  bannerText: {
-    fontSize: "16px",
-    fontWeight: "500",
-    margin: 0,
-  },
   orderNumberSection: {
     backgroundColor: "#f5f1ed",
     border: "2px solid #345a16",
@@ -263,22 +271,64 @@ const styles = {
     letterSpacing: "2px",
     margin: 0,
   },
-  pickupTimeSection: {
+  qrSection: {
     backgroundColor: "#ecfdf5",
     border: "2px solid #059669",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "24px",
+    textAlign: "center" as const,
+  },
+  qrInstructions: {
+    color: "#374151",
+    fontSize: "16px",
+    lineHeight: "1.5",
+    margin: "0 0 16px 0",
+  },
+  qrContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
+    display: "inline-block",
+    padding: "16px",
+  },
+  qrImage: {
+    display: "block",
+    height: "300px",
+    width: "300px",
+  },
+  qrFallback: {
+    color: "#6b7280",
+    fontSize: "14px",
+    lineHeight: "1.5",
+    margin: "16px 0 0 0",
+    wordBreak: "break-all" as const,
+  },
+  qrLink: {
+    color: "#059669",
+    textDecoration: "underline",
+  },
+  qrExpiry: {
+    color: "#059669",
+    fontSize: "13px",
+    fontStyle: "italic",
+    margin: "12px 0 0 0",
+  },
+  pickupTimeSection: {
+    backgroundColor: "#fffbeb",
+    border: "2px solid #d97706",
     borderRadius: "8px",
     marginTop: "24px",
     padding: "20px",
     textAlign: "center" as const,
   },
   pickupTimeLabel: {
-    color: "#059669",
+    color: "#d97706",
     fontSize: "14px",
     margin: "0 0 8px 0",
     textTransform: "uppercase" as const,
   },
   pickupTime: {
-    color: "#065f46",
+    color: "#92400e",
     fontSize: "24px",
     fontWeight: "bold",
     margin: 0,
@@ -301,6 +351,27 @@ const styles = {
     color: "#374151",
     fontSize: "14px",
     padding: "12px 8px",
+  },
+  trackSection: {
+    backgroundColor: "#f5f3ff",
+    border: "2px solid #7c3aed",
+    borderRadius: "8px",
+    marginTop: "24px",
+    padding: "20px",
+    textAlign: "center" as const,
+  },
+  buttonContainer: {
+    marginTop: "16px",
+  },
+  button: {
+    backgroundColor: "#7c3aed",
+    borderRadius: "6px",
+    color: "#ffffff",
+    display: "inline-block",
+    fontSize: "16px",
+    fontWeight: "600",
+    padding: "14px 28px",
+    textDecoration: "none",
   },
   pickupSection: {
     backgroundColor: "#edf5da",

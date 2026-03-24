@@ -1,7 +1,11 @@
+import crypto from "crypto";
+import QRCode from "qrcode";
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
 import { OrderConfirmationEmail } from "@/components/emails/OrderConfirmationEmail";
 import { AdminNewOrderEmail } from "@/components/emails/AdminNewOrderEmail";
+import { OrderReadyEmail } from "@/components/emails/OrderReadyEmail";
+import { OrderStatusUpdateEmail } from "@/components/emails/OrderStatusUpdateEmail";
 import { Prisma } from "@prisma/client";
 
 // Create Gmail transporter
@@ -32,6 +36,7 @@ export interface OrderWithItems {
   guestNotes?: string | null;
   paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
   total: Prisma.Decimal | number;
+  pickupTime?: Date | null;
   items: Array<{
     id: string;
     quantity: number;
@@ -197,5 +202,150 @@ export async function sendMagicLinkEmail(email: string, magicLink: string): Prom
   } catch (error) {
     console.error("Error sending magic link email:", error);
     throw error;
+  }
+}
+
+// QR Token expiry: 7 days
+const QR_TOKEN_EXPIRY_DAYS = 7;
+
+/**
+ * Generate a cryptographically secure QR token
+ * Returns token and expiration date
+ */
+export function generateQRToken(): { token: string; expiresAt: Date } {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + QR_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  return { token, expiresAt };
+}
+
+/**
+ * Generate QR code data URL for embedding in emails
+ */
+export async function generateQRCodeDataUrl(token: string): Promise<string> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const scanUrl = `${baseUrl}/admin/scan?token=${token}`;
+
+  return QRCode.toDataURL(scanUrl, {
+    width: 400,
+    margin: 2,
+    color: {
+      dark: "#166534", // Essa Cafe green theme
+      light: "#ffffff",
+    },
+  });
+}
+
+/**
+ * Send order ready email with QR code for pickup
+ * Non-blocking - errors are caught and logged
+ */
+export async function sendOrderReadyEmail(
+  order: OrderWithItems,
+  qrToken: string
+): Promise<void> {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.warn("Gmail not configured, skipping order ready email");
+      return;
+    }
+
+    const items = order.items.map((item) => ({
+      name: item.product.name,
+      quantity: item.quantity,
+      price: typeof item.price === "number" ? item.price : Number(item.price),
+    }));
+
+    const total =
+      typeof order.total === "number" ? order.total : Number(order.total);
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const trackingUrl = `${baseUrl}/order-status?order=${order.orderNumber}`;
+    const scanUrl = `${baseUrl}/admin/scan?token=${qrToken}`;
+
+    // Generate QR code as data URL
+    const qrCodeDataUrl = await generateQRCodeDataUrl(qrToken);
+
+    const html = await render(
+      OrderReadyEmail({
+        orderNumber: order.orderNumber,
+        guestName: order.guestName,
+        items,
+        total,
+        pickupTime: order.pickupTime,
+        qrCodeDataUrl,
+        scanUrl,
+        trackingUrl,
+      })
+    );
+
+    const result = await transporter.sendMail({
+      from: `"Essa Cafe" <${process.env.GMAIL_USER}>`,
+      to: order.guestEmail,
+      subject: `Your Order #${order.orderNumber} is Ready for Pickup — Essa Cafe`,
+      html,
+    });
+
+    console.log("Order ready email sent:", result.messageId);
+  } catch (error) {
+    // Email failure must NOT propagate - log and continue
+    console.error("Error sending order ready email:", error);
+  }
+}
+
+/**
+ * Send order status update email for CANCELLED or REFUNDED orders
+ * Non-blocking - errors are caught and logged
+ */
+export async function sendOrderStatusUpdateEmail(
+  order: OrderWithItems,
+  status: "CANCELLED" | "REFUNDED"
+): Promise<void> {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.warn("Gmail not configured, skipping status update email");
+      return;
+    }
+
+    const items = order.items.map((item) => ({
+      name: item.product.name,
+      quantity: item.quantity,
+      price: typeof item.price === "number" ? item.price : Number(item.price),
+    }));
+
+    const total =
+      typeof order.total === "number" ? order.total : Number(order.total);
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const trackingUrl = `${baseUrl}/order-status?order=${order.orderNumber}`;
+
+    const html = await render(
+      OrderStatusUpdateEmail({
+        orderNumber: order.orderNumber,
+        guestName: order.guestName,
+        items,
+        total,
+        status,
+        trackingUrl,
+      })
+    );
+
+    const subject =
+      status === "CANCELLED"
+        ? `Order #${order.orderNumber} Cancelled — Essa Cafe`
+        : `Order #${order.orderNumber} Refunded — Essa Cafe`;
+
+    const result = await transporter.sendMail({
+      from: `"Essa Cafe" <${process.env.GMAIL_USER}>`,
+      to: order.guestEmail,
+      subject,
+      html,
+    });
+
+    console.log(`Order ${status.toLowerCase()} email sent:`, result.messageId);
+  } catch (error) {
+    // Email failure must NOT propagate - log and continue
+    console.error(`Error sending order ${status.toLowerCase()} email:`, error);
   }
 }

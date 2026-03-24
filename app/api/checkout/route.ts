@@ -13,6 +13,7 @@ import {
 const checkoutSchema = checkoutContactSchema.merge(
   z.object({
     paymentMethod: z.enum(["STRIPE", "PAY_ON_PICKUP"]),
+    pickupTime: z.string().optional(),
     items: z
       .array(
         z.object({
@@ -37,7 +38,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { guestName, guestEmail, guestPhone, guestNotes, paymentMethod, items } = result.data;
+    const { guestName, guestEmail, guestPhone, guestNotes, pickupTime, paymentMethod, items } = result.data;
+
+    // Validate pickup time for PAY_ON_PICKUP
+    if (paymentMethod === "PAY_ON_PICKUP" && pickupTime) {
+      const selectedDate = new Date(pickupTime);
+      const minDate = new Date();
+      minDate.setMinutes(minDate.getMinutes() + 10);
+
+      if (selectedDate < minDate) {
+        return NextResponse.json(
+          { error: "Invalid pickup time", message: "Pickup time must be at least 10 minutes from now" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Fetch products and prices from DB (never trust client prices)
     const productIds = items.map((item) => item.productId);
@@ -60,7 +75,7 @@ export async function POST(request: NextRequest) {
     // PAY_ON_PICKUP path - create order immediately
     if (paymentMethod === "PAY_ON_PICKUP") {
       const order = await createOrderAtomically(
-        { guestName, guestEmail, guestPhone, guestNotes, paymentMethod, items },
+        { guestName, guestEmail, guestPhone, guestNotes, paymentMethod, items, pickupTime },
         priceSnapshot
       );
 

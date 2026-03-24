@@ -13,6 +13,7 @@ interface ContactData {
   guestEmail: string;
   guestPhone?: string;
   guestNotes?: string;
+  pickupTime?: string;
 }
 
 export default function CheckoutPage() {
@@ -36,7 +37,8 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSubmit = async (
-    paymentMethod: "STRIPE" | "PAY_ON_PICKUP"
+    paymentMethod: "STRIPE" | "PAY_ON_PICKUP",
+    pickupTime?: string
   ) => {
     if (!contactData) return;
 
@@ -49,6 +51,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           ...contactData,
           paymentMethod,
+          pickupTime,
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,

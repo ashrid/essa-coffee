@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       guestEmail: order.guestEmail,
       guestPhone: order.guestPhone,
       guestNotes: order.guestNotes,
+      pickupTime: order.pickupTime?.toISOString() || null,
       items: order.items.map((item) => ({
         quantity: item.quantity,
         price: item.price.toString(),
@@ -54,6 +55,9 @@ export async function POST(request: NextRequest) {
       total: order.total.toString(),
       paymentMethod: order.paymentMethod,
       createdAt: order.createdAt.toISOString(),
+      // Include QR token for READY orders so customer can see their pickup QR code
+      qrToken: order.status === "READY" ? order.qrToken : null,
+      qrTokenExpiresAt: order.status === "READY" ? order.qrTokenExpiresAt?.toISOString() || null : null,
     });
   } catch (error) {
     console.error("Order lookup error:", error);

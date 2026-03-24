@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { orderStatusSchema } from "@/lib/validators";
+import { generateQRToken, sendOrderReadyEmail, type OrderWithItems } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -49,10 +50,57 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
+  const newStatus = parsed.data;
+
+  // Fetch current order to check if status is changing to READY
+  const currentOrder = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      items: {
+        include: {
+          product: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  if (!currentOrder) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  const isChangingToReady = newStatus === "READY" && currentOrder.status !== "READY";
+
+  // Prepare update data
+  const updateData: {
+    status: typeof newStatus;
+    qrToken?: string;
+    qrTokenExpiresAt?: Date;
+  } = {
+    status: newStatus,
+  };
+
+  // Generate QR token if changing to READY
+  let qrToken: string | undefined;
+  if (isChangingToReady) {
+    const qrData = generateQRToken();
+    qrToken = qrData.token;
+    updateData.qrToken = qrData.token;
+    updateData.qrTokenExpiresAt = qrData.expiresAt;
+  }
+
+  // Update order
   const order = await prisma.order.update({
     where: { id },
-    data: { status: parsed.data },
+    data: updateData,
   });
+
+  // Send order ready email if status changed to READY
+  if (isChangingToReady && qrToken) {
+    // Fire and forget - don't block the response on email sending
+    sendOrderReadyEmail(currentOrder as OrderWithItems, qrToken).catch((error) => {
+      console.error("Failed to send order ready email:", error);
+    });
+  }
 
   return NextResponse.json(order);
 }

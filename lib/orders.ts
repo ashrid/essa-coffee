@@ -12,6 +12,7 @@ export interface CheckoutData {
   guestEmail: string;
   guestPhone?: string | null;
   guestNotes?: string | null;
+  pickupTime?: string | null;
   paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
   items: CheckoutItem[];
 }
@@ -44,6 +45,7 @@ export async function createOrderAtomically(
           guestEmail: data.guestEmail,
           guestPhone: data.guestPhone || null,
           guestNotes: data.guestNotes || null,
+          pickupTime: data.pickupTime ? new Date(data.pickupTime) : null,
           paymentMethod: data.paymentMethod,
           total: new Prisma.Decimal(total),
           items: {
