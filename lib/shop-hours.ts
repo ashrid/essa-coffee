@@ -8,20 +8,53 @@ export interface ShopHours {
 }
 
 /**
- * Parse hours from env var format "HH:MM-HH:MM" or "closed"
+ * Parse hours from env var format "HH:MM-HH:MM", "9am-6pm", "9:00 AM-6:00 PM", or "closed"
+ * Returns 24-hour format internally for consistent processing
  */
 function parseHours(hoursStr: string | undefined): ShopHours {
   if (!hoursStr || hoursStr.toLowerCase() === "closed") {
     return { open: "closed", close: "closed", isOpen: false };
   }
 
-  const [open, close] = hoursStr.split("-");
-  if (!open || !close) {
+  const [openRaw, closeRaw] = hoursStr.split("-");
+  if (!openRaw || !closeRaw) {
     // Fallback to default if malformed
     return { open: "09:00", close: "18:00", isOpen: true };
   }
 
-  return { open: open.trim(), close: close.trim(), isOpen: true };
+  const open = convertTo24Hour(openRaw.trim());
+  const close = convertTo24Hour(closeRaw.trim());
+
+  return { open, close, isOpen: true };
+}
+
+/**
+ * Convert various time formats to 24-hour "HH:MM" format
+ * Handles: "09:00", "9am", "9:00am", "9 AM", "9:00 AM", "9:00 pm"
+ */
+function convertTo24Hour(timeStr: string): string {
+  // Normalize: lowercase, remove extra spaces
+  const normalized = timeStr.toLowerCase().replace(/\s+/g, "");
+
+  // Match patterns like "9am", "9:30am", "12pm", "12:45pm"
+  const match = normalized.match(/^(\d{1,2}):?(\d{2})?(am|pm)$/);
+  if (!match) {
+    // Assume it's already 24-hour format like "09:00"
+    return timeStr.length === 4 ? `0${timeStr}` : timeStr;
+  }
+
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2] || "00";
+  const period = match[3];
+
+  // Convert 12-hour to 24-hour
+  if (period === "pm" && hours !== 12) {
+    hours += 12;
+  } else if (period === "am" && hours === 12) {
+    hours = 0;
+  }
+
+  return `${String(hours).padStart(2, "0")}:${minutes}`;
 }
 
 /**
