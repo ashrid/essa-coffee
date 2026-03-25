@@ -126,7 +126,7 @@ export function OrderConfirmationEmail({
                       {item.quantity}
                     </td>
                     <td style={{ ...styles.td, textAlign: "right" }}>
-                      ${item.price.toFixed(2)}
+                      AED {item.price.toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -145,7 +145,7 @@ export function OrderConfirmationEmail({
                       borderTop: "2px solid #345a16",
                     }}
                   >
-                    ${total.toFixed(2)}
+                    AED {total.toFixed(2)}
                   </td>
                 </tr>
               </tbody>

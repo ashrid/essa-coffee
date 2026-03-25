@@ -117,7 +117,7 @@ export function OrderStatusUpdateEmail({
                       {item.quantity}
                     </td>
                     <td style={{ ...styles.td, textAlign: "right" }}>
-                      ${item.price.toFixed(2)}
+                      AED {item.price.toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -136,7 +136,7 @@ export function OrderStatusUpdateEmail({
                       borderTop: "2px solid #345a16",
                     }}
                   >
-                    ${total.toFixed(2)}
+                    AED {total.toFixed(2)}
                   </td>
                 </tr>
               </tbody>
@@ -148,7 +148,7 @@ export function OrderStatusUpdateEmail({
             <Section style={styles.refundSection}>
               <Heading style={styles.sectionTitle}>Refund Details</Heading>
               <Text style={styles.text}>
-                <strong>Refund Amount:</strong> ${total.toFixed(2)}
+                <strong>Refund Amount:</strong> AED {total.toFixed(2)}
               </Text>
               <Text style={styles.text}>
                 <strong>Processing Time:</strong> 5-10 business days

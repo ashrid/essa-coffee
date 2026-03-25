@@ -41,16 +41,17 @@ function getAdminEmails(): string[] {
   return [...new Set(all)];
 }
 
-export async function sendMagicLink(email: string, callbackUrl: string) {
+export async function sendMagicLink(email: string, callbackUrl: string, origin?: string) {
   // Only allow admin emails to request magic links
   if (!getAdminEmails().includes(email.toLowerCase())) {
     throw new Error("Unauthorized email address");
   }
 
   const token = generateMagicToken(email);
-  // Always land on the login page so the token can be exchanged.
-  // callbackUrl is preserved as a separate param for post-auth redirect.
-  const url = new URL("/admin/login", process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000");
+  // Use the provided origin (from request headers) or fall back to env vars
+  // This allows the magic link to work with any host (ngrok, localhost, production)
+  const baseUrl = origin || process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const url = new URL("/admin/login", baseUrl);
   url.searchParams.set("token", token);
   if (callbackUrl) {
     url.searchParams.set("callbackUrl", callbackUrl);
@@ -108,6 +109,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.email = user.email;
       }
       return token;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs and preserves the host (works with ngrok)
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callbacks to the same origin
+      if (url.startsWith(baseUrl)) return url;
+      // Default: redirect to baseUrl
+      return baseUrl;
     },
   },
 });

@@ -12,7 +12,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await sendMagicLink(email, callbackUrl);
+    // Extract origin from request headers to support dynamic hosts (ngrok, localhost, etc.)
+    const origin = request.headers.get("origin") || request.headers.get("host")
+      ? `${request.headers.get("x-forwarded-proto") === "https" ? "https" : "http"}://${request.headers.get("host")}`
+      : undefined;
+
+    await sendMagicLink(email, callbackUrl, origin);
 
     return NextResponse.json({ success: true });
   } catch (error) {

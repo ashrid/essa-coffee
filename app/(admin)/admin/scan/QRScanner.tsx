@@ -94,38 +94,43 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     checkCameraAccess();
 
     function initializeScanner() {
-      scannerRef.current = new Html5QrcodeScanner(
-        elementId,
-        {
-          fps: 2,  // Lower for mobile battery life (per RESEARCH.md)
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          showTorchButtonIfSupported: true,
-          showZoomSliderIfSupported: true,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-        },
-        false  // verbose
-      );
+      try {
+        scannerRef.current = new Html5QrcodeScanner(
+          elementId,
+          {
+            fps: 2,  // Lower for mobile battery life (per RESEARCH.md)
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            showZoomSliderIfSupported: true,
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          },
+          false  // verbose
+        );
 
-      scannerRef.current.render(
-        handleScan,
-        (error) => {
-          // Ignore "no QR found" errors - they happen constantly while scanning
-          if (error?.includes('No MultiFormat Readers')) return;
-          if (error?.includes('No barcode found')) return;
+        // render() uses callbacks, not promises
+        scannerRef.current.render(
+          handleScan,
+          (error) => {
+            // Ignore "no QR found" errors - they happen constantly while scanning
+            if (error?.includes('No MultiFormat Readers')) return;
+            if (error?.includes('No barcode found')) return;
 
-          // Handle permission errors
-          if (error?.includes('NotAllowedError')) {
-            setState('permission-denied');
+            // Handle permission errors
+            if (error?.includes('NotAllowedError')) {
+              setState('permission-denied');
+            }
           }
-        }
-      ).then(() => {
+        );
+
+        // Set scanning state immediately - the scanner is now rendering
         setState('scanning');
-      }).catch((err) => {
+      } catch (err) {
+        const error = err as Error;
         setState('error');
-        setErrorMessage(err.message || 'Failed to start camera');
-        onError?.(err.message);
-      });
+        setErrorMessage(error.message || 'Failed to start camera');
+        onError?.(error.message);
+      }
     }
 
     // Cleanup function - CRITICAL for releasing camera
