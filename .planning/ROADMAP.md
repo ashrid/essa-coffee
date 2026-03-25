@@ -97,6 +97,34 @@ Plans:
 
 ---
 
+### Phase 2.1: Admin QR Scanner Enhancement (INSERTED)
+
+**Goal:** Add in-page QR code scanning capability to the admin/scan page for mobile devices, allowing employees to scan order QR codes directly without navigating between pages or using external apps.
+
+**Depends on:** Phase 2 (Launch & Validation)
+
+**Requirements:**
+- ADM-SCAN-01: Mobile camera access for QR scanning
+- ADM-SCAN-02: Real-time QR code detection and decoding
+- ADM-SCAN-03: Immediate order lookup and display after scan
+- ADM-SCAN-04: Auto-reset for next scan (continuous scanning mode)
+
+**Success Criteria:**
+1. **Employee can scan QR code from mobile browser** — Staff member opens admin/scan on phone, grants camera permission, and successfully scans an order QR code
+2. **Scanned order displays immediately** — After successful scan, order details appear without page navigation or refresh
+3. **Continuous scanning mode** — After viewing an order, one tap returns to scanner for next order (no page jumps)
+4. **Works on common mobile browsers** — Chrome, Safari, Samsung Internet all support camera access and scanning
+5. **Graceful fallbacks** — If camera denied or unavailable, manual order number entry still works
+
+**Plans:** 3 plans created
+
+Plans:
+- [x] 02.1-01-PLAN.md — Install html5-qrcode library dependency
+- [ ] 02.1-02-PLAN.md — Create QRScanner component and ScannerContainer wrapper
+- [ ] 02.1-03-PLAN.md — Integrate scanner into admin/scan page with continuous scanning mode (human-verify)
+
+---
+
 ### Phase 3: Competitive Advantages
 
 **Goal:** Build features that customers actually request, based on Phase 2 feedback - only ship what demonstrates real demand.
@@ -121,7 +149,9 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core MVP | 7/7 | Complete   | 2026-03-23 |
+| 1.1 Coffee Ordering Pivot | 4/4 | Complete | 2026-03-25 |
 | 2. Launch & Validation | 1/3 | In Progress|  |
+| 2.1 Admin QR Scanner | 0/3 | Planned | — |
 | 3. Competitive Advantages | 0/1 | Not started | — |
 
 ---
