@@ -2,6 +2,30 @@ import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { prisma } from "./db";
 
+/**
+ * Generates the next order number in sequence (ORD-001, ORD-002, etc.)
+ */
+async function generateOrderNumber(tx: Prisma.TransactionClient): Promise<string> {
+  // Get the latest order number
+  const lastOrder = await tx.order.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { orderNumber: true },
+  });
+
+  let nextNumber = 1;
+
+  if (lastOrder?.orderNumber) {
+    // Extract number from existing format (e.g., "ORD-123" -> 123)
+    const match = lastOrder.orderNumber.match(/\d+/);
+    if (match) {
+      nextNumber = parseInt(match[0], 10) + 1;
+    }
+  }
+
+  // Format: ORD-001, ORD-002, etc.
+  return `ORD-${String(nextNumber).padStart(3, "0")}`;
+}
+
 export interface CheckoutItem {
   productId: string;
   quantity: number;
@@ -38,9 +62,13 @@ export async function createOrderAtomically(
         return sum + Number(priceSnapshot[item.productId]) * item.quantity;
       }, 0);
 
-      // 3. Create order + items
+      // 3. Generate simple order number
+      const orderNumber = await generateOrderNumber(tx);
+
+      // 4. Create order + items
       const order = await tx.order.create({
         data: {
+          orderNumber,
           guestName: data.guestName,
           guestEmail: data.guestEmail,
           guestPhone: data.guestPhone || null,

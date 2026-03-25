@@ -41,7 +41,7 @@ model Product {
 
 model Order {
   id              String        @id @default(cuid())
-  orderNumber     String        @unique @default(cuid())
+  orderNumber     String        @unique
   guestName       String
   guestEmail      String
   guestPhone      String?
