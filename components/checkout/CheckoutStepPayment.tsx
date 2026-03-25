@@ -9,6 +9,15 @@ import { CartItem } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
 import { getShopHours, isWithinShopHours } from "@/lib/shop-hours";
 
+// Check if shop is currently open
+function isShopOpen(): boolean {
+  const now = new Date();
+  const hours = getShopHours(now.getDay());
+  if (!hours.isOpen) return false;
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  return currentTime >= hours.open && currentTime <= hours.close;
+}
+
 interface CheckoutStepPaymentProps {
   contactData: {
     guestName: string;
@@ -93,6 +102,8 @@ export function CheckoutStepPayment({
 
   const today = new Date();
   const timeSlots = useMemo(() => generateTimeSlotsForDay(today), []);
+  const shopOpen = useMemo(() => isShopOpen(), []);
+  const shopHours = useMemo(() => getShopHours(today.getDay()), []);
 
   // Check if selected time is outside business hours
   const isOutsideHours = useMemo(() => {
@@ -158,6 +169,25 @@ export function CheckoutStepPayment({
 
   return (
     <div className="space-y-6">
+      {/* Shop Closed Warning - Shows when shop is closed */}
+      {!shopOpen && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-red-900">
+                We are currently closed
+              </p>
+              <p className="text-sm text-red-700">
+                {shopHours.isOpen
+                  ? `Today's hours: ${formatTimeDisplay(shopHours.open)} – ${formatTimeDisplay(shopHours.close)}`
+                  : "We're closed today. Please come back during business hours."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pickup Info Summary */}
       <div className="bg-forest-50 border border-forest-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
@@ -235,10 +265,12 @@ export function CheckoutStepPayment({
 
         {/* Pay with Card - Now Second */}
         <label
-          className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-            selectedMethod === "STRIPE"
-              ? "border-forest-600 bg-forest-50"
-              : "border-cream-200 hover:border-forest-300"
+          className={`flex items-center gap-4 p-4 border rounded-lg transition-colors ${
+            !shopOpen
+              ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+              : selectedMethod === "STRIPE"
+                ? "border-forest-600 bg-forest-50 cursor-pointer"
+                : "border-cream-200 hover:border-forest-300 cursor-pointer"
           }`}
         >
           <input
@@ -247,17 +279,23 @@ export function CheckoutStepPayment({
             value="STRIPE"
             checked={selectedMethod === "STRIPE"}
             onChange={() => {
-              setSelectedMethod("STRIPE");
-              setPickupError("");
+              if (shopOpen) {
+                setSelectedMethod("STRIPE");
+                setPickupError("");
+              }
             }}
-            className="w-4 h-4 text-forest-600"
+            disabled={!shopOpen}
+            className="w-4 h-4 text-forest-600 disabled:opacity-40"
           />
           <div className="flex items-center gap-3 flex-1">
-            <CreditCard className="w-5 h-5 text-forest-600" />
+            <CreditCard className={`w-5 h-5 ${shopOpen ? "text-forest-600" : "text-gray-400"}`} />
             <div>
-              <p className="font-medium text-forest-900">Pay now with card</p>
+              <p className={`font-medium ${shopOpen ? "text-forest-900" : "text-gray-500"}`}>
+                Pay now with card
+                {!shopOpen && " (Unavailable — Shop Closed)"}
+              </p>
               <p className="text-sm text-forest-600">
-                Secure payment via Stripe
+                {shopOpen ? "Secure payment via Stripe" : "Available during business hours only"}
               </p>
             </div>
           </div>

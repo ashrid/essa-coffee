@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { createOrderAtomically } from "@/lib/orders";
 import { checkoutContactSchema } from "@/lib/validators";
+import { getShopHours } from "@/lib/shop-hours";
 import {
   sendOrderConfirmation,
   sendAdminNewOrderNotification,
@@ -71,6 +72,28 @@ export async function POST(request: NextRequest) {
     const priceSnapshot = Object.fromEntries(
       products.map((p) => [p.id, p.price])
     );
+
+    // Check if shop is open for online payments (STRIPE)
+    if (paymentMethod === "STRIPE") {
+      const now = new Date();
+      const shopHours = getShopHours(now.getDay());
+
+      if (!shopHours.isOpen) {
+        return NextResponse.json(
+          { error: "Shop closed", message: "We are currently closed. Please try again during business hours." },
+          { status: 400 }
+        );
+      }
+
+      // Check if current time is within business hours
+      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      if (currentTime < shopHours.open || currentTime > shopHours.close) {
+        return NextResponse.json(
+          { error: "Shop closed", message: `We are currently closed. Our hours today are ${shopHours.open}-${shopHours.close}.` },
+          { status: 400 }
+        );
+      }
+    }
 
     // PAY_ON_PICKUP path - create order immediately
     if (paymentMethod === "PAY_ON_PICKUP") {
