@@ -2,12 +2,18 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Info, CreditCard, Store, Loader2, Clock } from "lucide-react";
+import { Info, CreditCard, Store, Loader2, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CartItem } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CheckoutStepPaymentProps {
   contactData: {
@@ -23,19 +29,40 @@ interface CheckoutStepPaymentProps {
   isLoading: boolean;
 }
 
-// Format date for datetime-local input (YYYY-MM-DDTHH:mm)
-function formatDateTimeLocal(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+// Generate time slots in 5-minute increments
+function generateTimeSlots(): string[] {
+  const slots: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 5) {
+      const h = String(hour).padStart(2, "0");
+      const m = String(minute).padStart(2, "0");
+      slots.push(`${h}:${m}`);
+    }
+  }
+  return slots;
 }
 
-// Format date for display
-function formatPickupTime(dateString: string): string {
-  const date = new Date(dateString);
+// Get shop hours for a given date
+function getShopHours(date: Date): { open: string; close: string; isOpen: boolean } {
+  const day = date.getDay(); // 0 = Sunday, 6 = Saturday
+  if (day === 0) {
+    return { open: "closed", close: "closed", isOpen: false };
+  } else if (day === 6) {
+    return { open: "09:00", close: "17:00", isOpen: true };
+  } else {
+    return { open: "09:00", close: "18:00", isOpen: true };
+  }
+}
+
+// Check if a time is within shop hours for a given date
+function isWithinShopHours(date: Date, timeString: string): boolean {
+  const { open, close, isOpen } = getShopHours(date);
+  if (!isOpen) return false;
+  return timeString >= open && timeString <= close;
+}
+
+// Format pickup time for display
+function formatPickupTime(date: Date): string {
   return date.toLocaleString("en-US", {
     weekday: "short",
     month: "short",
@@ -46,30 +73,6 @@ function formatPickupTime(dateString: string): string {
   });
 }
 
-// Get shop hours for a given date
-function getShopHours(date: Date): { open: string; close: string } {
-  const day = date.getDay(); // 0 = Sunday, 6 = Saturday
-  if (day === 0) {
-    return { open: "closed", close: "closed" }; // Sunday closed
-  } else if (day === 6) {
-    return { open: "09:00", close: "17:00" }; // Saturday 9AM-5PM
-  } else {
-    return { open: "09:00", close: "18:00" }; // Weekdays 9AM-6PM
-  }
-}
-
-// Check if a date is within shop hours
-function isWithinShopHours(date: Date): boolean {
-  const { open, close } = getShopHours(date);
-  if (open === "closed") return false;
-
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const timeString = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-
-  return timeString >= open && timeString <= close;
-}
-
 export function CheckoutStepPayment({
   cartItems,
   subtotal,
@@ -77,54 +80,54 @@ export function CheckoutStepPayment({
   onBack,
   isLoading,
 }: CheckoutStepPaymentProps) {
-  const [selectedMethod, setSelectedMethod] = useState<"STRIPE" | "PAY_ON_PICKUP">("STRIPE");
-  const [pickupTime, setPickupTime] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<"STRIPE" | "PAY_ON_PICKUP">("PAY_ON_PICKUP");
+  const [selectedDay, setSelectedDay] = useState<"today" | "tomorrow">("today");
+  const [selectedTime, setSelectedTime] = useState<string>("");
   const [pickupError, setPickupError] = useState<string>("");
 
-  // Calculate minimum pickup time (now + 10 minutes)
-  const minPickupTime = useMemo(() => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() + 10);
-    return formatDateTimeLocal(now);
-  }, []);
+  const timeSlots = useMemo(() => generateTimeSlots(), []);
 
-  // Calculate maximum pickup time (7 days from now)
-  const maxPickupTime = useMemo(() => {
-    const max = new Date();
-    max.setDate(max.getDate() + 7);
-    return formatDateTimeLocal(max);
-  }, []);
+  // Calculate selected pickup date
+  const selectedPickupDate = useMemo(() => {
+    const date = new Date();
+    if (selectedDay === "tomorrow") {
+      date.setDate(date.getDate() + 1);
+    }
+    return date;
+  }, [selectedDay]);
+
+  // Check if selected time is outside business hours
+  const isOutsideHours = useMemo(() => {
+    if (!selectedTime) return false;
+    return !isWithinShopHours(selectedPickupDate, selectedTime);
+  }, [selectedPickupDate, selectedTime]);
+
+  // Get warning message from env var
+  const pickupWarningMessage = process.env.NEXT_PUBLIC_PICKUP_WARNING_MESSAGE ||
+    "Please note our business hours. We'll prepare your order for your selected time.";
 
   const handleSubmit = () => {
     if (selectedMethod === "PAY_ON_PICKUP") {
-      if (!pickupTime) {
+      if (!selectedTime) {
         setPickupError("Please select a pickup time");
         return;
       }
 
-      const selectedDate = new Date(pickupTime);
-      const minDate = new Date(minPickupTime);
+      // Construct full pickup datetime
+      const [hours, minutes] = selectedTime.split(":").map(Number);
+      const pickupDate = new Date(selectedPickupDate);
+      pickupDate.setHours(hours, minutes, 0, 0);
 
       // Validate 10-minute buffer
-      if (selectedDate < minDate) {
+      const minDate = new Date();
+      minDate.setMinutes(minDate.getMinutes() + 10);
+      if (pickupDate < minDate) {
         setPickupError("Pickup time must be at least 10 minutes from now");
         return;
       }
 
-      // Validate shop hours
-      if (!isWithinShopHours(selectedDate)) {
-        const { open, close } = getShopHours(selectedDate);
-        const dayName = selectedDate.toLocaleDateString("en-US", { weekday: "long" });
-        if (open === "closed") {
-          setPickupError(`We are closed on ${dayName}s. Please select another day.`);
-        } else {
-          setPickupError(`Pickup time must be between ${open} and ${close} on ${dayName}s.`);
-        }
-        return;
-      }
-
       setPickupError("");
-      onSubmit(selectedMethod, pickupTime);
+      onSubmit(selectedMethod, pickupDate.toISOString());
     } else {
       onSubmit(selectedMethod);
     }
@@ -182,6 +185,32 @@ export function CheckoutStepPayment({
 
         <label
           className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
+            selectedMethod === "PAY_ON_PICKUP"
+              ? "border-forest-600 bg-forest-50"
+              : "border-cream-200 hover:border-forest-300"
+          }`}
+        >
+          <input
+            type="radio"
+            name="paymentMethod"
+            value="PAY_ON_PICKUP"
+            checked={selectedMethod === "PAY_ON_PICKUP"}
+            onChange={() => setSelectedMethod("PAY_ON_PICKUP")}
+            className="w-4 h-4 text-forest-600"
+          />
+          <div className="flex items-center gap-3 flex-1">
+            <Store className="w-5 h-5 text-forest-600" />
+            <div>
+              <p className="font-medium text-forest-900">Pay on pickup</p>
+              <p className="text-sm text-forest-600">
+                Cash or card when you pick up
+              </p>
+            </div>
+          </div>
+        </label>
+
+        <label
+          className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
             selectedMethod === "STRIPE"
               ? "border-forest-600 bg-forest-50"
               : "border-cream-200 hover:border-forest-300"
@@ -208,64 +237,93 @@ export function CheckoutStepPayment({
             </div>
           </div>
         </label>
-
-        <label
-          className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-            selectedMethod === "PAY_ON_PICKUP"
-              ? "border-forest-600 bg-forest-50"
-              : "border-cream-200 hover:border-forest-300"
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="PAY_ON_PICKUP"
-            checked={selectedMethod === "PAY_ON_PICKUP"}
-            onChange={() => setSelectedMethod("PAY_ON_PICKUP")}
-            className="w-4 h-4 text-forest-600"
-          />
-          <div className="flex items-center gap-3 flex-1">
-            <Store className="w-5 h-5 text-forest-600" />
-            <div>
-              <p className="font-medium text-forest-900">Pay on pickup</p>
-              <p className="text-sm text-forest-600">
-                Cash or card when you pick up
-              </p>
-            </div>
-          </div>
-        </label>
       </div>
 
       {/* Pickup Time Selector - Only for Pay on Pickup */}
       {selectedMethod === "PAY_ON_PICKUP" && (
-        <div className="bg-cream-50 border border-cream-200 rounded-lg p-4 space-y-3">
+        <div className="bg-cream-50 border border-cream-200 rounded-lg p-4 space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-forest-600" />
-            <Label htmlFor="pickupTime" className="font-semibold text-forest-900">
+            <Label className="font-semibold text-forest-900">
               Select Pickup Time
             </Label>
           </div>
           <p className="text-sm text-forest-600">
-            Please select a time at least 10 minutes from now during our business hours.
+            Please select a time at least 10 minutes from now.
           </p>
-          <Input
-            id="pickupTime"
-            type="datetime-local"
-            value={pickupTime}
-            min={minPickupTime}
-            max={maxPickupTime}
-            onChange={(e) => {
-              setPickupTime(e.target.value);
+
+          {/* Day Selector */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={selectedDay === "today" ? "default" : "outline"}
+              onClick={() => {
+                setSelectedDay("today");
+                setPickupError("");
+              }}
+              className={`flex-1 ${
+                selectedDay === "today"
+                  ? "bg-forest-600 hover:bg-forest-700"
+                  : "border-cream-300"
+              }`}
+            >
+              Today
+            </Button>
+            <Button
+              type="button"
+              variant={selectedDay === "tomorrow" ? "default" : "outline"}
+              onClick={() => {
+                setSelectedDay("tomorrow");
+                setPickupError("");
+              }}
+              className={`flex-1 ${
+                selectedDay === "tomorrow"
+                  ? "bg-forest-600 hover:bg-forest-700"
+                  : "border-cream-300"
+              }`}
+            >
+              Tomorrow
+            </Button>
+          </div>
+
+          {/* Time Selector */}
+          <Select
+            value={selectedTime}
+            onValueChange={(value) => {
+              setSelectedTime(value);
               setPickupError("");
             }}
-            className={pickupError ? "border-red-500" : ""}
-          />
+          >
+            <SelectTrigger className={pickupError ? "border-red-500" : ""}>
+              <SelectValue placeholder="Select a time" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {timeSlots.map((time) => (
+                <SelectItem key={time} value={time}>
+                  {time}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {pickupError && (
             <p className="text-sm text-red-500">{pickupError}</p>
           )}
-          {pickupTime && !pickupError && (
+
+          {/* Warning for outside business hours */}
+          {isOutsideHours && (
+            <div className="flex items-start gap-2 text-amber-700 bg-amber-50 p-3 rounded-md">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <p className="text-sm">{pickupWarningMessage}</p>
+            </div>
+          )}
+
+          {selectedTime && !pickupError && (
             <p className="text-sm text-forest-600">
-              You selected: <strong>{formatPickupTime(pickupTime)}</strong>
+              You selected:{" "}
+              <strong>
+                {selectedDay === "today" ? "Today" : "Tomorrow"} at {selectedTime}
+              </strong>
             </p>
           )}
         </div>

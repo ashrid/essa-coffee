@@ -1,8 +1,20 @@
 # Essa Cafe — Online Pickup Store
 
-A Next.js storefront for pickup orders. Customers browse products, pay online (Stripe) or on pickup, and receive an order confirmation email. Admin panel for managing orders, products, and categories.
+A Next.js storefront for pickup orders. Customers browse products, pay online (Stripe) or on pickup, receive order confirmation emails with QR codes for quick pickup, and track order status in real-time. Admin panel with mobile-responsive design for managing orders, products, and categories.
 
 **Tech stack:** Next.js 15 · Prisma · PostgreSQL (Neon) · Stripe · Gmail SMTP · NextAuth v5 · Tailwind CSS
+
+---
+
+## Features
+
+- **Pickup Orders** — Browse products, add to cart, choose pickup time
+- **Payment Options** — Pay online via Stripe or cash/card on pickup
+- **QR Code Pickup** — Customers receive a unique QR code in their confirmation email for quick order pickup verification
+- **Order Status Tracking** — Real-time order status updates with customer lookup page
+- **Mobile-Responsive Admin** — Manage orders, products, and categories from any device
+- **Email Notifications** — Automated order confirmations and status updates via Gmail SMTP
+- **Multi-Currency Support** — Configurable currency (default: AED)
 
 ---
 
@@ -95,6 +107,7 @@ In your Vercel project → **Settings → Environment Variables**, add each vari
 | `SHOP_ADDRESS_LINE2` | Your shop address (e.g. `Dubai, UAE`) |
 | `SHOP_PHONE` | Your contact number |
 | `GOOGLE_MAPS_EMBED_URL` | Google Maps → Share → Embed a map → copy the `src` URL |
+| `NEXT_PUBLIC_PICKUP_WARNING_MESSAGE` | *(Optional)* Custom message shown when customers select pickup times outside business hours |
 
 ### Step 5 — Set up Stripe webhook
 
@@ -136,6 +149,22 @@ Access at `/admin` — login uses a magic link sent to `ADMIN_EMAIL`.
 | `/admin/orders` | View and update order status |
 | `/admin/products` | Add, edit, delete products |
 | `/admin/categories` | Manage product categories |
+| `/admin/scan` | **QR Code Scanner** — Scan customer QR codes for instant order lookup and verification |
+
+The admin panel is fully responsive and works on mobile devices for on-the-go management.
+
+---
+
+## Customer Features
+
+| Feature | Description |
+|---|---|
+| Browse & Search | Filter products by category, search by name |
+| Shopping Cart | Add/remove items, adjust quantities |
+| Checkout | Two-step checkout with contact details and payment selection |
+| Pickup Time Selection | Choose pickup time (today/tomorrow) with 5-minute increments |
+| QR Code | Unique QR code sent via email for quick pickup verification |
+| Order Tracking | Check order status anytime via `/order-status` with email + order ID |
 
 ---
 
