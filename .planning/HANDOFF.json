@@ -1,43 +1,63 @@
 {
   "version": "1.0",
-  "timestamp": "2026-03-24T15:22:09Z",
-  "phase": null,
-  "phase_name": "Order Status Notifications + QR Pickup",
-  "phase_dir": null,
+  "timestamp": "2026-03-25T00:00:00Z",
+  "phase": "02-launch-validation",
+  "phase_name": "Launch & Validation",
+  "phase_dir": ".planning/phases/02-launch-validation/",
   "plan": null,
-  "task": 2,
-  "total_tasks": 10,
+  "task": null,
+  "total_tasks": 3,
   "status": "paused",
-  "completed_tasks": [
-    {"id": 1, "name": "Database migration for QR token fields", "status": "done", "commit": null}
+  "completed_work": [
+    {
+      "description": "Fixed pickup info mismatch - checkout, confirmation, order status pages now use env vars",
+      "commits": [
+        "fix: resolve require() error in order-status page build",
+        "fix: use env vars for shop address across checkout, emails, and order pages"
+      ]
+    },
+    {
+      "description": "Fixed track order placeholder - changed from 'ABC123' to 'ORD-001' format"
+    },
+    {
+      "description": "Fixed email address - all email templates now use dynamic shop address"
+    },
+    {
+      "description": "Fixed order lookup case sensitivity - using Prisma mode: 'insensitive'"
+    }
   ],
-  "remaining_tasks": [
-    {"id": 2, "name": "Email library functions for status notifications", "status": "not_started"},
-    {"id": 3, "name": "React Email components for status emails", "status": "not_started"},
-    {"id": 4, "name": "API route for QR verification", "status": "not_started"},
-    {"id": 5, "name": "API route for QR resend", "status": "not_started"},
-    {"id": 6, "name": "Update admin orders API for QR flow", "status": "not_started"},
-    {"id": 7, "name": "Admin QR scan page", "status": "not_started"},
-    {"id": 8, "name": "Update admin order detail UI", "status": "not_started"},
-    {"id": 9, "name": "Update confirmation email", "status": "not_started"},
-    {"id": 10, "name": "Test QR pickup flow", "status": "not_started"}
+  "remaining_plans": [
+    {
+      "id": "02-02",
+      "file": "02-02-PLAN.md",
+      "name": "Infrastructure Setup",
+      "requires_human_action": true
+    },
+    {
+      "id": "02-03",
+      "file": "02-03-PLAN.md",
+      "name": "Production Validation",
+      "requires_human_action": true
+    }
   ],
   "blockers": [],
-  "human_actions_pending": [],
+  "human_actions_pending": [
+    "Complete Vercel project setup",
+    "Set up Neon database",
+    "Configure Stripe webhook"
+  ],
   "decisions": [
-    {"decision": "Use Option 3+4 hybrid: Smart notifications + QR pickup", "rationale": "Customer wants email on status changes AND QR code for pickup verification", "phase": null},
-    {"decision": "QR token expires in 7 days", "rationale": "Requested by user, with ability to reissue if customer deletes email", "phase": null},
-    {"decision": "Auto-redirect to scan page after completion", "rationale": "Enables rapid order processing for next customer", "phase": null},
-    {"decision": "Show only name/details (no photo) on scan page", "rationale": "User preference for simpler UI", "phase": null},
-    {"decision": "Use crypto.randomBytes(32) for token generation", "rationale": "Security requirement - tokens must be cryptographically random", "phase": null}
+    {
+      "decision": "Used Prisma mode: 'insensitive' for case-insensitive order number matching",
+      "rationale": "Order numbers stored as ORD-001 but users might type in various cases",
+      "phase": "02-launch-validation"
+    },
+    {
+      "decision": "Split order-status into server page.tsx and client OrderStatusContent.tsx",
+      "rationale": "Avoid require() errors while preserving env var access in server component",
+      "phase": "02-launch-validation"
+    }
   ],
-  "uncommitted_files": [
-    "prisma/schema.prisma",
-    "prisma/migrations/20260324151836_add_qr_token_fields/",
-    "prisma/migrations/20260324161500_add_qr_token_fields/",
-    "docs/plans/2026-03-24-order-status-qr-design.md",
-    "docs/plans/2026-03-24-order-status-qr-implementation-guide.md"
-  ],
-  "next_action": "Install qrcode package and add email library functions (sendOrderReadyEmail, sendOrderStatusUpdateEmail, generateQRToken)",
-  "context_notes": "Database migration is complete. Prisma schema now has qrToken and qrTokenExpiresAt fields. Migration has been applied to PostgreSQL database. Ready to implement email functions and QR generation. The design uses a hybrid approach: email notifications on status changes (READY, CANCELLED, REFUNDED) plus QR code in READY email for pickup verification. Admin scans QR with phone browser to mark orders complete."
+  "next_action": "Resume with '/gsd:resume-work' or execute infrastructure plan 02-02 when ready",
+  "context_notes": "All three reported issues have been fixed and committed. Pickup info now uses SHOP_ADDRESS_LINE1/2 env vars across all pages. Order number placeholder shows correct ORD-001 format. Email templates use dynamic shop address. Phase 02-01 is complete. Next steps require human action for Vercel/Neon infrastructure setup (plan 02-02), followed by production validation (plan 02-03)."
 }
