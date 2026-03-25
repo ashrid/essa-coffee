@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { QrCode, CheckCircle, XCircle, AlertCircle, Loader2, Package, User, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ScannerContainer } from './ScannerContainer';
 
 type OrderStatus = 'NEW' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
@@ -42,17 +43,36 @@ function ScanPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [scannedToken, setScannedToken] = useState<string | null>(null);
+
+  // Handle successful QR scan
+  const handleScan = useCallback((token: string) => {
+    setScannedToken(token);
+  }, []);
+
+  // Handle scan errors
+  const handleScanError = useCallback((error: string) => {
+    toast.error(error);
+  }, []);
+
+  // Reset to scanner for next order
+  const resetScan = useCallback(() => {
+    setScannedToken(null);
+    setOrder(null);
+    setError(null);
+  }, []);
 
   // Verify QR token on mount
   useEffect(() => {
-    if (!token) {
+    const activeToken = token || scannedToken;
+    if (!activeToken) {
       setIsLoading(false);
       return;
     }
 
     async function verifyToken() {
       try {
-        const response = await fetch(`/api/orders/verify-qr?token=${encodeURIComponent(token!)}`);
+        const response = await fetch(`/api/orders/verify-qr?token=${encodeURIComponent(activeToken!)}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -72,7 +92,7 @@ function ScanPageContent() {
     }
 
     verifyToken();
-  }, [token]);
+  }, [token, scannedToken]);
 
   // Handle order completion
   async function handleCompleteOrder() {
@@ -96,7 +116,7 @@ function ScanPageContent() {
 
       // Auto-redirect back to scan page after 3 seconds
       setTimeout(() => {
-        router.push('/admin/scan');
+        resetScan();
       }, 3000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to complete order');
@@ -115,48 +135,32 @@ function ScanPageContent() {
     );
   }
 
-  // No token - show instructions
-  if (!token) {
+  // No token - show QR scanner with manual fallback
+  if (!token && !scannedToken) {
     return (
       <div className="max-w-md mx-auto p-6">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-forest-100 rounded-full mb-4">
             <QrCode className="w-10 h-10 text-forest-600" />
           </div>
-          <h1 className="text-2xl font-bold text-forest-900 mb-2">QR Scan</h1>
+          <h1 className="text-2xl font-bold text-forest-900 mb-2">Scan Order QR</h1>
           <p className="text-forest-600">
-            Scan a customer&apos;s QR code to verify their order and mark it as completed.
+            Scan a customer&apos;s QR code to verify their order.
           </p>
         </div>
 
-        <div className="bg-cream-50 border border-cream-200 rounded-xl p-6 space-y-4">
-          <h2 className="font-semibold text-forest-900">How it works:</h2>
-          <ol className="space-y-3 text-forest-700 text-sm">
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-forest-600 text-white rounded-full flex items-center justify-center text-sm font-medium">1</span>
-              <span>Customer receives QR code via email when their order is ready</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-forest-600 text-white rounded-full flex items-center justify-center text-sm font-medium">2</span>
-              <span>Customer shows QR code to staff at pickup</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-forest-600 text-white rounded-full flex items-center justify-center text-sm font-medium">3</span>
-              <span>Staff scans QR code to verify order details</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-forest-600 text-white rounded-full flex items-center justify-center text-sm font-medium">4</span>
-              <span>Staff marks order as completed and hands over items</span>
-            </li>
-          </ol>
+        {/* QR Scanner */}
+        <div className="mb-6">
+          <ScannerContainer onScan={handleScan} onError={handleScanError} />
         </div>
 
-        <div className="mt-6 text-center">
-          <Link
-            href="/admin/orders"
-            className="text-forest-600 hover:text-forest-800 text-sm"
-          >
-            ← Back to Orders
+        {/* Manual Entry Fallback */}
+        <div className="border-t border-cream-200 pt-6">
+          <p className="text-center text-forest-500 text-sm mb-4">— or enter order manually —</p>
+          <Link href="/admin/orders">
+            <Button variant="outline" className="w-full">
+              Look Up Order
+            </Button>
           </Link>
         </div>
       </div>
@@ -217,7 +221,7 @@ function ScanPageContent() {
         <div className="mt-6 text-center">
           <Button
             variant="outline"
-            onClick={() => router.push('/admin/scan')}
+            onClick={resetScan}
             className="w-full"
           >
             Scan Another Code
@@ -247,7 +251,7 @@ function ScanPageContent() {
               Redirecting to scan another order in a few seconds...
             </p>
             <Button
-              onClick={() => router.push('/admin/scan')}
+              onClick={resetScan}
               className="w-full bg-forest-600 hover:bg-forest-700"
             >
               Scan Next Order
@@ -362,11 +366,9 @@ function ScanPageContent() {
             )}
           </Button>
 
-          <Link href="/admin/scan">
-            <Button variant="outline" className="w-full">
-              Cancel & Scan Another
-            </Button>
-          </Link>
+          <Button variant="outline" className="w-full" onClick={resetScan}>
+            Cancel & Scan Another
+          </Button>
         </div>
       </div>
     );
