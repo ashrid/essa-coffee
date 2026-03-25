@@ -30,17 +30,23 @@ function parseHours(hoursStr: string | undefined): ShopHours {
 
 /**
  * Convert various time formats to 24-hour "HH:MM" format
- * Handles: "09:00", "9am", "9:00am", "9 AM", "9:00 AM", "9:00 pm"
+ * Handles: "09:00", "9am", "9:00am", "9AM", "9:00AM", "9 AM", "9:00 AM"
  */
 function convertTo24Hour(timeStr: string): string {
-  // Normalize: lowercase, remove extra spaces
-  const normalized = timeStr.toLowerCase().replace(/\s+/g, "");
+  // Normalize: remove all spaces, normalize to lowercase
+  const normalized = timeStr.replace(/\s+/g, "").toLowerCase();
 
-  // Match patterns like "9am", "9:30am", "12pm", "12:45pm"
-  const match = normalized.match(/^(\d{1,2}):?(\d{2})?(am|pm)$/);
+  // Match patterns like "9am", "9:30am", "9:30AM", "12pm", "12:45pm", "12:45PM"
+  // Capture: hours (1-2 digits), optional minutes (2 digits), am/pm
+  const match = normalized.match(/^(\d{1,2}):?(\d{2})?(am|pm)$/i);
   if (!match) {
     // Assume it's already 24-hour format like "09:00"
-    return timeStr.length === 4 ? `0${timeStr}` : timeStr;
+    // Validate it looks like HH:MM
+    if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+      const [h, m] = timeStr.split(":");
+      return `${String(parseInt(h, 10)).padStart(2, "0")}:${m}`;
+    }
+    return "09:00"; // Fallback
   }
 
   let hours = parseInt(match[1], 10);
