@@ -22,6 +22,11 @@ interface CheckoutStepPaymentProps {
   onBack: () => void;
   isLoading: boolean;
   shopHours: ShopHoursConfig;
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
 }
 
 // Generate time slots in 5-minute increments from shop open to close
@@ -87,6 +92,8 @@ export function CheckoutStepPayment({
   onBack,
   isLoading,
   shopHours,
+  shopAddress,
+  hoursSummary,
 }: CheckoutStepPaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<"STRIPE" | "PAY_ON_PICKUP">("PAY_ON_PICKUP");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -192,10 +199,10 @@ export function CheckoutStepPayment({
           <Info className="w-5 h-5 text-forest-600 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-forest-900">
-              Pickup at 123 Green Street
+              Pickup at {shopAddress.line1}
             </p>
             <p className="text-sm text-forest-700">
-              Mon–Fri 9AM–6PM, Sat 9AM–5PM
+              {hoursSummary}
             </p>
             <Link
               href="/pickup-info"

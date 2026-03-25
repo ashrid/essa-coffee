@@ -23,6 +23,11 @@ interface OrderConfirmationEmailProps {
   total: number;
   paymentMethod: "STRIPE" | "PAY_ON_PICKUP";
   pickupTime?: Date | null;
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
 }
 
 function formatPickupTime(date: Date): string {
@@ -43,6 +48,8 @@ export function OrderConfirmationEmail({
   total,
   paymentMethod,
   pickupTime,
+  shopAddress,
+  hoursSummary,
 }: OrderConfirmationEmailProps) {
   const isPayOnPickup = paymentMethod === "PAY_ON_PICKUP";
 
@@ -156,12 +163,12 @@ export function OrderConfirmationEmail({
             <Text style={styles.pickupAddress}>
               <strong>Essa Cafe</strong>
               <br />
-              123 Green Street
+              {shopAddress.line1}
               <br />
-              Your City, State 00000
+              {shopAddress.line2}
             </Text>
             <Text style={styles.text}>
-              <strong>Hours:</strong> Mon–Fri 9am–6pm, Sat 9am–5pm
+              <strong>Hours:</strong> {hoursSummary}
             </Text>
             <Text style={styles.text}>
               Questions? Reply to this email

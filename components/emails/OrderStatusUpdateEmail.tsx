@@ -23,6 +23,11 @@ interface OrderStatusUpdateEmailProps {
   total: number;
   status: "CANCELLED" | "REFUNDED";
   trackingUrl: string;
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
 }
 
 export function OrderStatusUpdateEmail({
@@ -32,6 +37,8 @@ export function OrderStatusUpdateEmail({
   total,
   status,
   trackingUrl,
+  shopAddress,
+  hoursSummary,
 }: OrderStatusUpdateEmailProps) {
   const isCancelled = status === "CANCELLED";
   const title = isCancelled ? "Order Cancelled" : "Order Refunded";
@@ -174,11 +181,11 @@ export function OrderStatusUpdateEmail({
             <Text style={styles.text}>
               <strong>Essa Cafe</strong>
               <br />
-              123 Green Street
+              {shopAddress.line1}
               <br />
-              Your City, State 00000
+              {shopAddress.line2}
               <br />
-              Mon–Fri 9am–6pm, Sat 9am–5pm
+              {hoursSummary}
             </Text>
           </Section>
 

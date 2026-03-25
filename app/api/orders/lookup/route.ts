@@ -17,9 +17,14 @@ export async function POST(request: NextRequest) {
 
     const { orderNumber, email } = result.data;
 
-    // Find order by orderNumber
-    const order = await prisma.order.findUnique({
-      where: { orderNumber: orderNumber.toLowerCase() },
+    // Find order by orderNumber (case-insensitive)
+    const order = await prisma.order.findFirst({
+      where: {
+        orderNumber: {
+          equals: orderNumber,
+          mode: 'insensitive',
+        },
+      },
       include: {
         items: {
           include: {

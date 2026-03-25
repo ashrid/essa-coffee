@@ -7,6 +7,13 @@ import { AdminNewOrderEmail } from "@/components/emails/AdminNewOrderEmail";
 import { OrderReadyEmail } from "@/components/emails/OrderReadyEmail";
 import { OrderStatusUpdateEmail } from "@/components/emails/OrderStatusUpdateEmail";
 import { Prisma } from "@prisma/client";
+import { getHoursSummary } from "@/lib/shop-hours";
+
+// Shop configuration from environment variables
+const shopAddress = {
+  line1: process.env.SHOP_ADDRESS_LINE1 || "123 Green Street",
+  line2: process.env.SHOP_ADDRESS_LINE2 || "Your City, State 00000",
+};
 
 // Create Gmail transporter
 function createTransporter() {
@@ -75,6 +82,9 @@ export async function sendOrderConfirmation(order: OrderWithItems): Promise<void
         items,
         total,
         paymentMethod: order.paymentMethod,
+        pickupTime: order.pickupTime,
+        shopAddress,
+        hoursSummary: getHoursSummary(),
       })
     );
 
@@ -277,6 +287,8 @@ export async function sendOrderReadyEmail(
         qrCodeCid: cid,
         scanUrl,
         trackingUrl,
+        shopAddress,
+        hoursSummary: getHoursSummary(),
       })
     );
 
@@ -337,6 +349,8 @@ export async function sendOrderStatusUpdateEmail(
         total,
         status,
         trackingUrl,
+        shopAddress,
+        hoursSummary: getHoursSummary(),
       })
     );
 

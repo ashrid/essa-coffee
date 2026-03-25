@@ -19,9 +19,18 @@ interface ContactData {
 
 interface CheckoutPageClientProps {
   shopHours: ShopHoursConfig;
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
 }
 
-export function CheckoutPageClient({ shopHours }: CheckoutPageClientProps) {
+export function CheckoutPageClient({
+  shopHours,
+  shopAddress,
+  hoursSummary,
+}: CheckoutPageClientProps) {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCartStore();
   const [step, setStep] = useState<1 | 2>(1);
@@ -168,6 +177,8 @@ export function CheckoutPageClient({ shopHours }: CheckoutPageClientProps) {
           onBack={() => setStep(1)}
           isLoading={isLoading}
           shopHours={shopHours}
+          shopAddress={shopAddress}
+          hoursSummary={hoursSummary}
         />
       ) : null}
     </div>

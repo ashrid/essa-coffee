@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { getHoursSummary } from "@/lib/shop-hours";
 
 interface OrderConfirmationPageProps {
   searchParams: Promise<{
@@ -15,6 +16,13 @@ interface OrderConfirmationPageProps {
 export default async function OrderConfirmationPage({
   searchParams,
 }: OrderConfirmationPageProps) {
+  // Read shop info from environment variables
+  const shopAddress = {
+    line1: process.env.SHOP_ADDRESS_LINE1 || "123 Green Street",
+    line2: process.env.SHOP_ADDRESS_LINE2 || "Your City, State 00000",
+  };
+  const hoursSummary = getHoursSummary();
+
   const params = await searchParams;
   let order: {
     id: string;
@@ -185,10 +193,10 @@ export default async function OrderConfirmationPage({
             <MapPin className="w-5 h-5 text-forest-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-forest-900">
-                Pick up at 123 Green Street
+                Pick up at {shopAddress.line1}
               </p>
               <p className="text-sm text-forest-700">
-                Mon–Fri 9AM–6PM, Sat 9AM–5PM
+                {hoursSummary}
               </p>
             </div>
           </div>

@@ -36,6 +36,14 @@ interface OrderData {
   qrTokenExpiresAt: string | null;
 }
 
+interface OrderStatusContentProps {
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
+}
+
 function formatPickupTime(dateString: string): string {
   return new Date(dateString).toLocaleString('en-US', {
     weekday: 'long',
@@ -48,7 +56,7 @@ function formatPickupTime(dateString: string): string {
   });
 }
 
-function OrderStatusContent() {
+function OrderStatusContent({ shopAddress, hoursSummary }: OrderStatusContentProps) {
   const searchParams = useSearchParams();
   const prefillOrderNumber = searchParams.get('order');
 
@@ -289,8 +297,8 @@ function OrderStatusContent() {
         <div className="bg-forest-50 border border-forest-200 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-forest-900 mb-4">Pickup Information</h2>
           <div className="space-y-2 text-sm text-forest-700">
-            <p>📍 123 Green Street, Your City, State 00000</p>
-            <p>🕒 Mon–Fri 9AM–6PM, Sat 9AM–5PM</p>
+            <p>📍 {shopAddress.line1}, {shopAddress.line2}</p>
+            <p>🕒 {hoursSummary}</p>
             <p className="mt-4 text-forest-600">
               We&apos;ll email you at {order.guestEmail} when your order is ready for pickup.
             </p>
@@ -321,7 +329,7 @@ function OrderStatusContent() {
             <Input
               id="orderNumber"
               type="text"
-              placeholder="e.g., ABC123"
+              placeholder="e.g., ORD-001"
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               required
@@ -379,6 +387,16 @@ function OrderStatusContent() {
 }
 
 export default function OrderStatusPage() {
+  // Read shop info from environment variables on the server
+  const shopAddress = {
+    line1: process.env.SHOP_ADDRESS_LINE1 || "123 Green Street",
+    line2: process.env.SHOP_ADDRESS_LINE2 || "Your City, State 00000",
+  };
+
+  // Import and call getHoursSummary on the server
+  const { getHoursSummary } = require("@/lib/shop-hours");
+  const hoursSummary = getHoursSummary();
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <Suspense
@@ -389,7 +407,7 @@ export default function OrderStatusPage() {
           </div>
         }
       >
-        <OrderStatusContent />
+        <OrderStatusContent shopAddress={shopAddress} hoursSummary={hoursSummary} />
       </Suspense>
     </div>
   );

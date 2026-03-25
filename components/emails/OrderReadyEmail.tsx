@@ -26,6 +26,11 @@ interface OrderReadyEmailProps {
   qrCodeCid: string;
   scanUrl: string;
   trackingUrl: string;
+  shopAddress: {
+    line1: string;
+    line2: string;
+  };
+  hoursSummary: string;
 }
 
 function formatPickupTime(date: Date): string {
@@ -48,6 +53,8 @@ export function OrderReadyEmail({
   qrCodeCid,
   scanUrl,
   trackingUrl,
+  shopAddress,
+  hoursSummary,
 }: OrderReadyEmailProps) {
   return (
     <Html>
@@ -178,12 +185,12 @@ export function OrderReadyEmail({
             <Text style={styles.pickupAddress}>
               <strong>Essa Cafe</strong>
               <br />
-              123 Green Street
+              {shopAddress.line1}
               <br />
-              Your City, State 00000
+              {shopAddress.line2}
             </Text>
             <Text style={styles.text}>
-              <strong>Hours:</strong> Mon–Fri 9am–6pm, Sat 9am–5pm
+              <strong>Hours:</strong> {hoursSummary}
             </Text>
           </Section>
 
