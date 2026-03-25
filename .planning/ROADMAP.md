@@ -120,7 +120,7 @@ Plans:
 
 Plans:
 - [x] 02.1-01-PLAN.md — Install html5-qrcode library dependency
-- [ ] 02.1-02-PLAN.md — Create QRScanner component and ScannerContainer wrapper
+- [x] 02.1-02-PLAN.md — Create QRScanner component and ScannerContainer wrapper
 - [ ] 02.1-03-PLAN.md — Integrate scanner into admin/scan page with continuous scanning mode (human-verify)
 
 ---
