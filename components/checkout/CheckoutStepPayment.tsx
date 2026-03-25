@@ -2,18 +2,12 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Info, CreditCard, Store, Loader2, Clock, AlertCircle } from "lucide-react";
+import { Info, CreditCard, Store, Loader2, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CartItem } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { getShopHours, isWithinShopHours } from "@/lib/shop-hours";
 
 interface CheckoutStepPaymentProps {
   contactData: {
@@ -29,48 +23,60 @@ interface CheckoutStepPaymentProps {
   isLoading: boolean;
 }
 
-// Generate time slots in 5-minute increments
-function generateTimeSlots(): string[] {
+// Generate time slots in 5-minute increments from shop open to close
+function generateTimeSlotsForDay(date: Date): string[] {
+  const { open, close, isOpen } = getShopHours(date.getDay());
+  if (!isOpen || open === "closed" || close === "closed") {
+    return [];
+  }
+
   const slots: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 5) {
-      const h = String(hour).padStart(2, "0");
-      const m = String(minute).padStart(2, "0");
-      slots.push(`${h}:${m}`);
+  const [openHour, openMinute] = open.split(":").map(Number);
+  const [closeHour, closeMinute] = close.split(":").map(Number);
+
+  let currentHour = openHour;
+  let currentMinute = openMinute;
+
+  while (currentHour < closeHour || (currentHour === closeHour && currentMinute <= closeMinute)) {
+    const h = String(currentHour).padStart(2, "0");
+    const m = String(currentMinute).padStart(2, "0");
+    slots.push(`${h}:${m}`);
+
+    currentMinute += 5;
+    if (currentMinute >= 60) {
+      currentMinute = 0;
+      currentHour++;
     }
   }
+
   return slots;
 }
 
-// Get shop hours for a given date
-function getShopHours(date: Date): { open: string; close: string; isOpen: boolean } {
-  const day = date.getDay(); // 0 = Sunday, 6 = Saturday
-  if (day === 0) {
-    return { open: "closed", close: "closed", isOpen: false };
-  } else if (day === 6) {
-    return { open: "09:00", close: "17:00", isOpen: true };
-  } else {
-    return { open: "09:00", close: "18:00", isOpen: true };
-  }
+// Format time for display (e.g., "14:30" → "2:30 PM")
+function formatTimeDisplay(time24: string): string {
+  const [hours, minutes] = time24.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${String(minutes).padStart(2, "0")} ${period}`;
 }
 
-// Check if a time is within shop hours for a given date
-function isWithinShopHours(date: Date, timeString: string): boolean {
-  const { open, close, isOpen } = getShopHours(date);
-  if (!isOpen) return false;
-  return timeString >= open && timeString <= close;
+// Get minimum pickup time (10 minutes from now)
+function getMinimumPickupTime(): Date {
+  const minTime = new Date();
+  minTime.setMinutes(minTime.getMinutes() + 10);
+  return minTime;
 }
 
-// Format pickup time for display
-function formatPickupTime(date: Date): string {
-  return date.toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+// Check if a time slot is available (at least 10 min from now for today)
+function isTimeSlotAvailable(timeString: string, isToday: boolean): boolean {
+  if (!isToday) return true;
+
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const slotTime = new Date();
+  slotTime.setHours(hours, minutes, 0, 0);
+
+  const minTime = getMinimumPickupTime();
+  return slotTime >= minTime;
 }
 
 export function CheckoutStepPayment({
@@ -81,30 +87,42 @@ export function CheckoutStepPayment({
   isLoading,
 }: CheckoutStepPaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<"STRIPE" | "PAY_ON_PICKUP">("PAY_ON_PICKUP");
-  const [selectedDay, setSelectedDay] = useState<"today" | "tomorrow">("today");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [pickupError, setPickupError] = useState<string>("");
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
 
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
-
-  // Calculate selected pickup date
-  const selectedPickupDate = useMemo(() => {
-    const date = new Date();
-    if (selectedDay === "tomorrow") {
-      date.setDate(date.getDate() + 1);
-    }
-    return date;
-  }, [selectedDay]);
+  const today = new Date();
+  const timeSlots = useMemo(() => generateTimeSlotsForDay(today), []);
 
   // Check if selected time is outside business hours
   const isOutsideHours = useMemo(() => {
     if (!selectedTime) return false;
-    return !isWithinShopHours(selectedPickupDate, selectedTime);
-  }, [selectedPickupDate, selectedTime]);
+    return !isWithinShopHours(today, selectedTime);
+  }, [selectedTime]);
 
   // Get warning message from env var
   const pickupWarningMessage = process.env.NEXT_PUBLIC_PICKUP_WARNING_MESSAGE ||
     "Please note our business hours. We'll prepare your order for your selected time.";
+
+  // Group time slots into morning, afternoon, evening
+  const groupedSlots = useMemo(() => {
+    const morning: string[] = [];
+    const afternoon: string[] = [];
+    const evening: string[] = [];
+
+    timeSlots.forEach((time) => {
+      const hour = parseInt(time.split(":")[0]);
+      if (hour < 12) {
+        morning.push(time);
+      } else if (hour < 17) {
+        afternoon.push(time);
+      } else {
+        evening.push(time);
+      }
+    });
+
+    return { morning, afternoon, evening };
+  }, [timeSlots]);
 
   const handleSubmit = () => {
     if (selectedMethod === "PAY_ON_PICKUP") {
@@ -113,12 +131,11 @@ export function CheckoutStepPayment({
         return;
       }
 
-      // Construct full pickup datetime
+      // Validate 10-minute buffer for today
       const [hours, minutes] = selectedTime.split(":").map(Number);
-      const pickupDate = new Date(selectedPickupDate);
+      const pickupDate = new Date();
       pickupDate.setHours(hours, minutes, 0, 0);
 
-      // Validate 10-minute buffer
       const minDate = new Date();
       minDate.setMinutes(minDate.getMinutes() + 10);
       if (pickupDate < minDate) {
@@ -131,6 +148,12 @@ export function CheckoutStepPayment({
     } else {
       onSubmit(selectedMethod);
     }
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+    setPickupError("");
+    setIsTimePickerOpen(false);
   };
 
   return (
@@ -183,6 +206,7 @@ export function CheckoutStepPayment({
       <div className="space-y-3">
         <h3 className="font-semibold text-forest-900">Payment Method</h3>
 
+        {/* Pay on Pickup - Now First */}
         <label
           className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
             selectedMethod === "PAY_ON_PICKUP"
@@ -209,6 +233,7 @@ export function CheckoutStepPayment({
           </div>
         </label>
 
+        {/* Pay with Card - Now Second */}
         <label
           className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
             selectedMethod === "STRIPE"
@@ -249,62 +274,149 @@ export function CheckoutStepPayment({
             </Label>
           </div>
           <p className="text-sm text-forest-600">
-            Please select a time at least 10 minutes from now.
+            Choose a time at least 10 minutes from now during our business hours.
           </p>
 
-          {/* Day Selector */}
-          <div className="flex gap-2">
-            <Button
+          {/* Custom Time Picker Dropdown */}
+          <div className="relative">
+            <button
               type="button"
-              variant={selectedDay === "today" ? "default" : "outline"}
-              onClick={() => {
-                setSelectedDay("today");
-                setPickupError("");
-              }}
-              className={`flex-1 ${
-                selectedDay === "today"
-                  ? "bg-forest-600 hover:bg-forest-700"
+              onClick={() => setIsTimePickerOpen(!isTimePickerOpen)}
+              className={`w-full flex items-center justify-between px-4 py-3 bg-white border rounded-lg text-left transition-colors ${
+                pickupError
+                  ? "border-red-500"
+                  : selectedTime
+                  ? "border-forest-600"
                   : "border-cream-300"
-              }`}
+              } ${selectedTime ? "text-forest-900" : "text-forest-400"}`}
             >
-              Today
-            </Button>
-            <Button
-              type="button"
-              variant={selectedDay === "tomorrow" ? "default" : "outline"}
-              onClick={() => {
-                setSelectedDay("tomorrow");
-                setPickupError("");
-              }}
-              className={`flex-1 ${
-                selectedDay === "tomorrow"
-                  ? "bg-forest-600 hover:bg-forest-700"
-                  : "border-cream-300"
-              }`}
-            >
-              Tomorrow
-            </Button>
-          </div>
+              <span className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                {selectedTime ? formatTimeDisplay(selectedTime) : "Select a time"}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  isTimePickerOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-          {/* Time Selector */}
-          <Select
-            value={selectedTime}
-            onValueChange={(value) => {
-              setSelectedTime(value);
-              setPickupError("");
-            }}
-          >
-            <SelectTrigger className={pickupError ? "border-red-500" : ""}>
-              <SelectValue placeholder="Select a time" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              {timeSlots.map((time) => (
-                <SelectItem key={time} value={time}>
-                  {time}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {/* Time Picker Panel */}
+            {isTimePickerOpen && (
+              <>
+                {/* Backdrop to close on click outside */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsTimePickerOpen(false)}
+                />
+                <div className="absolute z-50 w-full mt-2 bg-white border border-cream-200 rounded-lg shadow-lg max-h-[320px] overflow-hidden">
+                  {timeSlots.length === 0 ? (
+                    <div className="p-4 text-center text-forest-600">
+                      Shop is closed today
+                    </div>
+                  ) : (
+                    <div className="p-3 space-y-4 overflow-y-auto max-h-[320px]">
+                      {/* Morning */}
+                      {groupedSlots.morning.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                            Morning
+                          </p>
+                          <div className="grid grid-cols-3 gap-2">
+                            {groupedSlots.morning.map((time) => {
+                              const isAvailable = isTimeSlotAvailable(time, true);
+                              const isSelected = selectedTime === time;
+                              return (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  disabled={!isAvailable}
+                                  onClick={() => isAvailable && handleTimeSelect(time)}
+                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
+                                    isSelected
+                                      ? "bg-forest-600 text-white"
+                                      : isAvailable
+                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
+                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  }`}
+                                >
+                                  {formatTimeDisplay(time)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Afternoon */}
+                      {groupedSlots.afternoon.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                            Afternoon
+                          </p>
+                          <div className="grid grid-cols-3 gap-2">
+                            {groupedSlots.afternoon.map((time) => {
+                              const isAvailable = isTimeSlotAvailable(time, true);
+                              const isSelected = selectedTime === time;
+                              return (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  disabled={!isAvailable}
+                                  onClick={() => isAvailable && handleTimeSelect(time)}
+                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
+                                    isSelected
+                                      ? "bg-forest-600 text-white"
+                                      : isAvailable
+                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
+                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  }`}
+                                >
+                                  {formatTimeDisplay(time)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Evening */}
+                      {groupedSlots.evening.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                            Evening
+                          </p>
+                          <div className="grid grid-cols-3 gap-2">
+                            {groupedSlots.evening.map((time) => {
+                              const isAvailable = isTimeSlotAvailable(time, true);
+                              const isSelected = selectedTime === time;
+                              return (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  disabled={!isAvailable}
+                                  onClick={() => isAvailable && handleTimeSelect(time)}
+                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
+                                    isSelected
+                                      ? "bg-forest-600 text-white"
+                                      : isAvailable
+                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
+                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  }`}
+                                >
+                                  {formatTimeDisplay(time)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
           {pickupError && (
             <p className="text-sm text-red-500">{pickupError}</p>
@@ -321,9 +433,7 @@ export function CheckoutStepPayment({
           {selectedTime && !pickupError && (
             <p className="text-sm text-forest-600">
               You selected:{" "}
-              <strong>
-                {selectedDay === "today" ? "Today" : "Tomorrow"} at {selectedTime}
-              </strong>
+              <strong>Today at {formatTimeDisplay(selectedTime)}</strong>
             </p>
           )}
         </div>
@@ -360,3 +470,4 @@ export function CheckoutStepPayment({
     </div>
   );
 }
+

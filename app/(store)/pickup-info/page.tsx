@@ -3,11 +3,14 @@ export const metadata = {
   description: "Find our location, hours, and pickup instructions.",
 };
 
+import { getDetailedHours } from "@/lib/shop-hours";
+
 export default function PickupInfoPage() {
   const addressLine1 = process.env.SHOP_ADDRESS_LINE1 || "Essa Cafe";
   const addressLine2 = process.env.SHOP_ADDRESS_LINE2 || "Dubai, UAE";
   const phone = process.env.SHOP_PHONE || "";
   const mapEmbedUrl = process.env.GOOGLE_MAPS_EMBED_URL || "";
+  const hours = getDetailedHours();
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
@@ -37,18 +40,17 @@ export default function PickupInfoPage() {
         <h2 className="text-xl font-semibold text-forest-700 mb-3">Hours</h2>
         <table className="w-full text-sm text-forest-900">
           <tbody>
-            <tr className="border-b border-cream-100">
-              <td className="py-2 font-medium">Monday – Friday</td>
-              <td className="py-2 text-right">9:00 AM – 6:00 PM</td>
-            </tr>
-            <tr className="border-b border-cream-100">
-              <td className="py-2 font-medium">Saturday</td>
-              <td className="py-2 text-right">9:00 AM – 5:00 PM</td>
-            </tr>
-            <tr>
-              <td className="py-2 font-medium">Sunday</td>
-              <td className="py-2 text-right text-sage-500">Closed</td>
-            </tr>
+            {hours.map((row, index) => (
+              <tr
+                key={row.day}
+                className={index < hours.length - 1 ? "border-b border-cream-100" : ""}
+              >
+                <td className="py-2 font-medium">{row.day}</td>
+                <td className={`py-2 text-right ${row.hours === "Closed" ? "text-sage-500" : ""}`}>
+                  {row.hours}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -43,7 +43,7 @@ export function CheckoutStepContact({
         <Input
           id="guestName"
           {...register("guestName")}
-          placeholder="John Doe"
+          placeholder="Essa Alshehhi"
           className={errors.guestName ? "border-red-500" : ""}
         />
         {errors.guestName && (
@@ -59,7 +59,7 @@ export function CheckoutStepContact({
           id="guestEmail"
           type="email"
           {...register("guestEmail")}
-          placeholder="john@example.com"
+          placeholder="example@email.com"
           className={errors.guestEmail ? "border-red-500" : ""}
         />
         {errors.guestEmail && (
@@ -75,7 +75,7 @@ export function CheckoutStepContact({
           id="guestPhone"
           type="tel"
           {...register("guestPhone")}
-          placeholder="(555) 123-4567"
+          placeholder="05x 123 4567"
           className={errors.guestPhone ? "border-red-500" : ""}
         />
         {errors.guestPhone && (
