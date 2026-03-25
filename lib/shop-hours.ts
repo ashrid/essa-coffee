@@ -8,6 +8,15 @@ export interface ShopHours {
 }
 
 /**
+ * Configuration type for shop hours passed from server to client
+ */
+export interface ShopHoursConfig {
+  weekday: string;
+  saturday: string;
+  sunday: string;
+}
+
+/**
  * Parse hours from env var format "HH:MM-HH:MM", "9am-6pm", "9:00 AM-6:00 PM", or "closed"
  * Returns 24-hour format internally for consistent processing
  */
@@ -78,11 +87,38 @@ export function getShopHours(day: number): ShopHours {
 }
 
 /**
+ * Get shop hours for a specific day using a config object
+ * Use this in client components where env vars are not available
+ * @param day - 0 = Sunday, 6 = Saturday
+ * @param config - Shop hours configuration object
+ */
+export function getShopHoursFromConfig(day: number, config: ShopHoursConfig): ShopHours {
+  if (day === 0) return parseHours(config.sunday);
+  if (day === 6) return parseHours(config.saturday);
+  return parseHours(config.weekday);
+}
+
+/**
  * Check if a given time is within shop hours for a specific date
  * Time format: "HH:MM" (24-hour)
  */
 export function isWithinShopHours(date: Date, timeString: string): boolean {
   const { open, close, isOpen } = getShopHours(date.getDay());
+  if (!isOpen) return false;
+  return timeString >= open && timeString <= close;
+}
+
+/**
+ * Check if a given time is within shop hours using a config object
+ * Use this in client components where env vars are not available
+ * Time format: "HH:MM" (24-hour)
+ */
+export function isWithinShopHoursWithConfig(
+  date: Date,
+  timeString: string,
+  config: ShopHoursConfig
+): boolean {
+  const { open, close, isOpen } = getShopHoursFromConfig(date.getDay(), config);
   if (!isOpen) return false;
   return timeString >= open && timeString <= close;
 }

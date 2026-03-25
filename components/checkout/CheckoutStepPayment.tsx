@@ -7,16 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CartItem } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
-import { getShopHours, isWithinShopHours } from "@/lib/shop-hours";
-
-// Check if shop is currently open
-function isShopOpen(): boolean {
-  const now = new Date();
-  const hours = getShopHours(now.getDay());
-  if (!hours.isOpen) return false;
-  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  return currentTime >= hours.open && currentTime <= hours.close;
-}
+import { getShopHoursFromConfig, isWithinShopHoursWithConfig, ShopHoursConfig } from "@/lib/shop-hours";
 
 interface CheckoutStepPaymentProps {
   contactData: {
@@ -30,11 +21,12 @@ interface CheckoutStepPaymentProps {
   onSubmit: (paymentMethod: "STRIPE" | "PAY_ON_PICKUP", pickupTime?: string) => void;
   onBack: () => void;
   isLoading: boolean;
+  shopHours: ShopHoursConfig;
 }
 
 // Generate time slots in 5-minute increments from shop open to close
-function generateTimeSlotsForDay(date: Date): string[] {
-  const { open, close, isOpen } = getShopHours(date.getDay());
+function generateTimeSlotsForDay(date: Date, shopHours: ShopHoursConfig): string[] {
+  const { open, close, isOpen } = getShopHoursFromConfig(date.getDay(), shopHours);
   if (!isOpen || open === "closed" || close === "closed") {
     return [];
   }
@@ -94,22 +86,28 @@ export function CheckoutStepPayment({
   onSubmit,
   onBack,
   isLoading,
+  shopHours,
 }: CheckoutStepPaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<"STRIPE" | "PAY_ON_PICKUP">("PAY_ON_PICKUP");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [pickupError, setPickupError] = useState<string>("");
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
 
-  const today = new Date();
-  const timeSlots = useMemo(() => generateTimeSlotsForDay(today), []);
-  const shopOpen = useMemo(() => isShopOpen(), []);
-  const shopHours = useMemo(() => getShopHours(today.getDay()), []);
+  const today = useMemo(() => new Date(), []);
+  const todayDay = today.getDay();
+  const timeSlots = useMemo(() => generateTimeSlotsForDay(today, shopHours), [today, shopHours]);
+  const todayHours = useMemo(() => getShopHoursFromConfig(todayDay, shopHours), [shopHours, todayDay]);
+  const shopOpen = useMemo(() => {
+    if (!todayHours.isOpen) return false;
+    const currentTime = `${String(today.getHours()).padStart(2, "0")}:${String(today.getMinutes()).padStart(2, "0")}`;
+    return currentTime >= todayHours.open && currentTime <= todayHours.close;
+  }, [today, todayHours]);
 
   // Check if selected time is outside business hours
   const isOutsideHours = useMemo(() => {
     if (!selectedTime) return false;
-    return !isWithinShopHours(today, selectedTime);
-  }, [selectedTime]);
+    return !isWithinShopHoursWithConfig(today, selectedTime, shopHours);
+  }, [selectedTime, shopHours, today]);
 
   // Get warning message from env var
   const pickupWarningMessage = process.env.NEXT_PUBLIC_PICKUP_WARNING_MESSAGE ||
@@ -179,8 +177,8 @@ export function CheckoutStepPayment({
                 We are currently closed
               </p>
               <p className="text-sm text-red-700">
-                {shopHours.isOpen
-                  ? `Today's hours: ${formatTimeDisplay(shopHours.open)} – ${formatTimeDisplay(shopHours.close)}`
+                {todayHours.isOpen
+                  ? `Today's hours: ${formatTimeDisplay(todayHours.open)} – ${formatTimeDisplay(todayHours.close)}`
                   : "We're closed today. Please come back during business hours."}
               </p>
             </div>
