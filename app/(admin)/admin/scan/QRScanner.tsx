@@ -58,8 +58,17 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
     // Check for camera support
     if (!navigator.mediaDevices?.getUserMedia) {
-      setState('unsupported');
-      setErrorMessage('Camera access is not supported in this browser.');
+      // Check if we're in a secure context
+      const isSecureContext = window.isSecureContext;
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+      if (!isSecureContext && !isLocalhost) {
+        setState('unsupported');
+        setErrorMessage('Camera requires HTTPS or localhost. Please access via https:// or localhost:3000');
+      } else {
+        setState('unsupported');
+        setErrorMessage('Camera access is not supported in this browser.');
+      }
       return;
     }
 
@@ -136,13 +145,25 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
   // Unsupported browser state
   if (state === 'unsupported') {
+    const isHttpsIssue = errorMessage.includes('HTTPS') || errorMessage.includes('localhost');
+
     return (
       <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
         <CameraOff className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-        <h3 className="font-semibold text-gray-900 mb-2">Camera Not Supported</h3>
-        <p className="text-gray-600 text-sm">
-          Your browser does not support camera access. Please use manual order entry below.
-        </p>
+        <h3 className="font-semibold text-gray-900 mb-2">Camera Not Available</h3>
+        <p className="text-gray-600 text-sm mb-4">{errorMessage}</p>
+        {isHttpsIssue && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left text-sm">
+            <p className="font-medium text-amber-900 mb-2">To fix this:</p>
+            <ol className="text-amber-800 space-y-1 list-decimal list-inside">
+              <li>Use <code className="bg-amber-100 px-1 rounded">localhost:3000</code> instead of IP address</li>
+              <li>Or set up HTTPS for your local network</li>
+            </ol>
+            <p className="mt-3 text-amber-700">
+              Browsers require secure connections for camera access.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
