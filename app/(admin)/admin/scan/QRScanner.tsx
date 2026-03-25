@@ -56,35 +56,42 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     // SSR safety check
     if (typeof window === 'undefined') return;
 
-    // Check for camera support
-    if (!navigator.mediaDevices?.getUserMedia) {
-      // Check if we're in a secure context
-      const isSecureContext = window.isSecureContext;
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-      if (!isSecureContext && !isLocalhost) {
-        setState('unsupported');
-        setErrorMessage('Camera requires HTTPS or localhost. Please access via https:// or localhost:3000');
-      } else {
-        setState('unsupported');
-        setErrorMessage('Camera access is not supported in this browser.');
-      }
+    // Check if we're in a secure context (required for camera)
+    if (window.isSecureContext === false) {
+      setState('unsupported');
+      setErrorMessage('Camera requires HTTPS or localhost. Please access via https:// or localhost:3000');
       return;
     }
 
-    // Check permission before initializing
-    navigator.permissions?.query({ name: 'camera' as PermissionName })
-      .then(permissionStatus => {
-        if (permissionStatus.state === 'denied') {
+    // Try to actually access the camera instead of just checking API existence
+    // This is more reliable on Android where the API may exist but behave differently
+    const checkCameraAccess = async () => {
+      try {
+        const stream = await navigator.mediaDevices?.getUserMedia({ video: true });
+        // Stop the stream immediately - we just wanted to check access
+        stream?.getTracks().forEach(track => track.stop());
+        // Camera is available, initialize the scanner
+        initializeScanner();
+      } catch (err) {
+        const error = err as Error;
+        // Handle specific error cases
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
           setState('permission-denied');
-          return;
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          setState('unsupported');
+          setErrorMessage('No camera found on this device.');
+        } else if (error.name === 'NotSupportedError' || error.name === 'SecurityError') {
+          setState('unsupported');
+          setErrorMessage('Camera access requires a secure connection (HTTPS) or localhost.');
+        } else {
+          // Unknown error - try to initialize anyway, html5-qrcode has its own error handling
+          console.warn('Camera check failed, trying scanner anyway:', error);
+          initializeScanner();
         }
-        initializeScanner();
-      })
-      .catch(() => {
-        // permissions API not supported, try anyway
-        initializeScanner();
-      });
+      }
+    };
+
+    checkCameraAccess();
 
     function initializeScanner() {
       scannerRef.current = new Html5QrcodeScanner(
