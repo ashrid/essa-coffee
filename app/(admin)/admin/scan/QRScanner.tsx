@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { AlertCircle, CameraOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -26,14 +26,14 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       if (decodedText.includes('?token=')) {
         // Full URL format: https://.../admin/scan?token=xxx
         const url = new URL(decodedText);
-        token = url.searchParams.get('token');
+        token = url.searchParams.get('token')?.toLowerCase() ?? null;
       } else if (decodedText.startsWith('http')) {
         // URL without token param
         const url = new URL(decodedText);
-        token = url.searchParams.get('token');
+        token = url.searchParams.get('token')?.toLowerCase() ?? null;
       } else {
-        // Raw token format
-        token = decodedText.trim();
+        // Raw token format - normalize to lowercase
+        token = decodedText.trim().toLowerCase();
       }
 
       if (token) {
@@ -43,7 +43,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       }
     } catch {
       // If URL parsing fails, treat as raw token
-      const token = decodedText.trim();
+      const token = decodedText.trim().toLowerCase();
       if (token) {
         onScan(token);
       } else {
@@ -103,7 +103,6 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
             aspectRatio: 1.0,
             showTorchButtonIfSupported: true,
             showZoomSliderIfSupported: true,
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
           },
           false  // verbose
         );
