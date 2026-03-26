@@ -1,35 +1,41 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { sendMagicLinkEmail } from "./email";
+import { prisma } from "./db";
 
-// Token store — uses globalThis to survive module re-instantiation across
-// different Next.js route handlers (App Router creates separate module instances).
-// In production, replace with Redis/Upstash: https://upstash.com/
-const globalForTokens = globalThis as unknown as {
-  tokenStore: Map<string, { email: string; expires: number }> | undefined;
-};
-if (!globalForTokens.tokenStore) {
-  globalForTokens.tokenStore = new Map<string, { email: string; expires: number }>();
-}
-const tokenStore = globalForTokens.tokenStore;
+export async function generateMagicToken(email: string): Promise<string> {
+  const token = crypto.randomUUID().replace(/-/g, ""); // 32-char hex string
+  const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-export function generateMagicToken(email: string): string {
-  const token = crypto.randomUUID();
-  // Token expires in 15 minutes
-  tokenStore.set(token, { email, expires: Date.now() + 15 * 60 * 1000 });
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email.toLowerCase(),
+      token,
+      expires,
+    },
+  });
+
   return token;
 }
 
-export function verifyMagicToken(token: string): string | null {
-  const data = tokenStore.get(token);
-  if (!data) return null;
-  if (Date.now() > data.expires) {
-    tokenStore.delete(token);
+export async function verifyMagicToken(token: string): Promise<string | null> {
+  const record = await prisma.verificationToken.findUnique({
+    where: { token },
+  });
+
+  if (!record) return null;
+
+  // Delete immediately (one-time use)
+  await prisma.verificationToken.delete({
+    where: { token },
+  });
+
+  // Check expiration after retrieval
+  if (record.expires < new Date()) {
     return null;
   }
-  // One-time use - delete after verification
-  tokenStore.delete(token);
-  return data.email;
+
+  return record.identifier;
 }
 
 function getAdminEmails(): string[] {
@@ -47,7 +53,7 @@ export async function sendMagicLink(email: string, callbackUrl: string, origin?:
     throw new Error("Unauthorized email address");
   }
 
-  const token = generateMagicToken(email);
+  const token = await generateMagicToken(email);
   // Use the provided origin (from request headers) or fall back to env vars
   // This allows the magic link to work with any host (ngrok, localhost, production)
   const baseUrl = origin || process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -75,7 +81,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.token) return null;
 
-        const email = verifyMagicToken(credentials.token as string);
+        const email = await verifyMagicToken(credentials.token as string);
         if (!email) return null;
 
         // Only allow admin emails to sign in
