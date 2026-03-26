@@ -40,3 +40,8 @@ next-env.d.ts
 # prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Prevent accidental commits of system files
+~/
+.config/
+EOF
