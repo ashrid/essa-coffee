@@ -68,13 +68,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const isChangingToReady = newStatus === "READY" && currentOrder.status !== "READY";
+  const previousStatus = currentOrder.status;
+  const isChangingToReady = newStatus === "READY" && previousStatus !== "READY";
 
   // Prepare update data
   const updateData: {
     status: typeof newStatus;
     qrToken?: string;
     qrTokenExpiresAt?: Date;
+    paymentStatus?: "PAID";
+    paidAt?: Date;
   } = {
     status: newStatus,
   };
@@ -88,11 +91,28 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     updateData.qrTokenExpiresAt = qrData.expiresAt;
   }
 
+  // Auto-set payment status for PAY_ON_PICKUP orders when marked COMPLETED
+  if (newStatus === "COMPLETED" && currentOrder.paymentMethod === "PAY_ON_PICKUP") {
+    updateData.paymentStatus = "PAID";
+    updateData.paidAt = new Date();
+  }
+
   // Update order
   const order = await prisma.order.update({
     where: { id },
     data: updateData,
   });
+
+  // Log status history if status changed (D-09)
+  if (previousStatus !== newStatus) {
+    await prisma.orderStatusHistory.create({
+      data: {
+        orderId: order.id,
+        status: newStatus,
+        changedBy: session.user?.email ?? "unknown",
+      },
+    });
+  }
 
   // Send order ready email if status changed to READY
   if (isChangingToReady && qrToken) {
