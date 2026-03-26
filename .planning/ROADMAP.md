@@ -180,7 +180,7 @@ Plans:
 - [x] 04-01-PLAN.md — Token Store Migration: Migrate auth tokens from in-memory to PostgreSQL (D-01)
 - [ ] 04-02-PLAN.md — Payment Status Updates: Stripe webhook + Pay-on-Pickup + Status History (D-02, D-03, D-09)
 - [x] 04-03-PLAN.md — Error Handling: Fix prefix mismatch + API error standardization (D-04, D-05)
-- [ ] 04-04-PLAN.md — QR Verification: Completed order handling + Rate limiting + Case normalization (D-06, D-07, D-08)
+- [x] 04-04-PLAN.md — QR Verification: Completed order handling + Rate limiting + Case normalization (D-06, D-07, D-08)
 - [x] 04-05-PLAN.md — Database Index Optimization: Add stripeSessionId index, remove qrTokenExpiresAt index (D-10)
 
 **Success Criteria:**
