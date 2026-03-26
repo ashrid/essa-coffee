@@ -10,6 +10,7 @@ import {
   sendAdminNewOrderNotification,
   OrderWithItems,
 } from "@/lib/email";
+import { ErrorCodes } from "@/lib/api-errors";
 
 const checkoutSchema = checkoutContactSchema.merge(
   z.object({
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     const result = checkoutSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { error: "Invalid request", details: result.error.issues },
+        { error: "Invalid request", code: ErrorCodes.INVALID_REQUEST, details: result.error.issues },
         { status: 400 }
       );
     }
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
       if (selectedDate < minDate) {
         return NextResponse.json(
-          { error: "Invalid pickup time", message: "Pickup time must be at least 10 minutes from now" },
+          { error: "Invalid pickup time", code: ErrorCodes.INVALID_REQUEST, message: "Pickup time must be at least 10 minutes from now" },
           { status: 400 }
         );
       }
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     if (products.length !== productIds.length) {
       return NextResponse.json(
-        { error: "Invalid request", message: "Some products not found" },
+        { error: "Invalid request", code: ErrorCodes.INVALID_REQUEST, message: "Some products not found" },
         { status: 400 }
       );
     }
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 
       if (!shopHours.isOpen) {
         return NextResponse.json(
-          { error: "Shop closed", message: "We are currently closed. Please try again during business hours." },
+          { error: "Shop closed", code: ErrorCodes.SHOP_CLOSED, message: "We are currently closed. Please try again during business hours." },
           { status: 400 }
         );
       }
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       if (currentTime < shopHours.open || currentTime > shopHours.close) {
         return NextResponse.json(
-          { error: "Shop closed", message: `We are currently closed. Our hours today are ${shopHours.open}-${shopHours.close}.` },
+          { error: "Shop closed", code: ErrorCodes.SHOP_CLOSED, message: `We are currently closed. Our hours today are ${shopHours.open}-${shopHours.close}.` },
           { status: 400 }
         );
       }
@@ -169,17 +170,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Checkout error:", error);
 
-    // Handle insufficient stock error
-    if (error instanceof Error && error.message.startsWith("INSUFFICIENT_STOCK:")) {
-      const productName = error.message.replace("INSUFFICIENT_STOCK:", "");
+    // Handle item unavailable error - per D-04
+    if (error instanceof Error && error.message.startsWith("ITEM_UNAVAILABLE:")) {
+      const productName = error.message.replace("ITEM_UNAVAILABLE:", "");
       return NextResponse.json(
-        { error: "Out of stock", productName },
+        { error: "Out of stock", code: ErrorCodes.ITEM_UNAVAILABLE, productName },
         { status: 409 }
       );
     }
 
     return NextResponse.json(
-      { error: "Order failed" },
+      { error: "Order failed", code: ErrorCodes.INTERNAL_ERROR },
       { status: 500 }
     );
   }
