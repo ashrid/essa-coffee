@@ -1,15 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { z } from "zod";
+import { checkRateLimit } from "@/lib/ratelimit";
 
+const verifyQRSchema = z.object({
+  token: z.string().min(64).max(64).regex(/^[a-f0-9]+$/, "Invalid token format"),
+});
+
+/**
+ * GET /api/orders/verify-qr
+ * Validates a QR code token and returns order details
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const token = searchParams.get("token");
+    const rawToken = searchParams.get("token");
 
-    if (!token) {
+    // Validate token format
+    const result = verifyQRSchema.safeParse({ token: rawToken });
+
+    if (!result.success) {
       return NextResponse.json(
-        { error: "QR token is required" },
+        { error: "Invalid QR token format" },
         { status: 400 }
+      );
+    }
+
+    const { token } = result.data;
+
+    // Extract client IP for rate limiting
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+    // Rate limit: 30 requests per minute per IP
+    const rateResult = await checkRateLimit(`verify-qr:${ip}`, 30, 60_000);
+    if (!rateResult.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again in 1 minute.", code: "RATE_LIMITED" },
+        { status: 429 }
       );
     }
 
@@ -40,6 +67,16 @@ export async function GET(request: NextRequest) {
         { error: "QR code has expired. Please ask staff to resend." },
         { status: 410 }
       );
+    }
+
+    // D-06: Check if order is already completed (before READY check)
+    if (order.status === "COMPLETED") {
+      return NextResponse.json({
+        error: "Order already completed",
+        code: "ALREADY_COMPLETED",
+        status: order.status,
+        alreadyCompleted: true,
+      }, { status: 200 });
     }
 
     // Verify order status is READY
