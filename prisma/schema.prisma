@@ -28,6 +28,7 @@ model Product {
   images      String[]
   isFeatured  Boolean     @default(false)
   isAvailable Boolean     @default(true)
+  deletedAt   DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   categoryId  String
@@ -36,6 +37,7 @@ model Product {
 
   @@index([categoryId])
   @@index([isFeatured])
+  @@index([deletedAt])
   @@map("products")
 }
 
@@ -49,11 +51,15 @@ model Order {
   pickupTime      DateTime?
   status          OrderStatus   @default(NEW)
   paymentMethod   PaymentMethod @default(PAY_ON_PICKUP)
+  paymentStatus   PaymentStatus @default(PENDING)
   stripeSessionId String?
   total           Decimal       @db.Decimal(10, 2)
+  paidAt          DateTime?
+  paidAmount      Decimal?      @db.Decimal(10, 2)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
 
   // QR Code fields for pickup verification
   qrToken          String?   @unique
@@ -61,17 +67,22 @@ model Order {
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
+  @@index([guestEmail])
+  // Note: stripeSessionId has @unique which provides an index for webhook queries
+  // Note: qrTokenExpiresAt index removed - expiration check follows qrToken unique lookup
   @@map("orders")
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   quantity  Int
-  price     Decimal @db.Decimal(10, 2)
+  price     Decimal  @db.Decimal(10, 2)
   productId String
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@unique([orderId, productId])
   @@map("order_items")
@@ -127,12 +138,41 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model OrderNumberCounter {
+  id         Int      @id @default(1)
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@map("order_number_counter")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  changedBy String?     // Admin user ID or "system"
+  createdAt DateTime    @default(now())
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("order_status_history")
+}
+
 enum OrderStatus {
   NEW
   READY
   COMPLETED
   CANCELLED
   REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  REFUNDED
+  FAILED
 }
 
 enum PaymentMethod {
