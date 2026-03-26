@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02.1-02-PLAN.md
-last_updated: "2026-03-25T19:23:39.272Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-03-26T10:28:37.653Z"
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 17
-  completed_plans: 16
+  total_phases: 6
+  completed_phases: 4
+  total_plans: 22
+  completed_plans: 18
 ---
 
 # Project State: ShopSeeds
@@ -34,14 +34,14 @@ Customers can browse plants and seeds online, place an order, and pick it up —
 - Guest checkout only (no customer accounts)
 
 **Current Focus:**
-Phase 02.1 — admin-qr-scanner-enhancement-inserted
+Phase 04 — production-readiness-fixes
 
 ---
 
 ## Current Position
 
-Phase: 02.1 (admin-qr-scanner-enhancement-inserted) — EXECUTING
-Plan: 3 of 3
+Phase: 04 (production-readiness-fixes) — EXECUTING
+Plan: 2 of 5
 
 ## Roadmap Structure
 
@@ -171,6 +171,7 @@ Research completed 2026-02-16. Key findings:
 ### Roadmap Evolution
 
 - Phase 01.1 inserted after Phase 01: Coffee ordering pivot — adapt site for coffee shop ordering, remove stock/care fields, replace all plant-seed references (URGENT)
+- Phase 4 added: Production Readiness Fixes — address 4 critical issues from cross-AI review before launch
 
 ---
 
@@ -221,6 +222,7 @@ Research completed 2026-02-16. Key findings:
 | Phase 02-launch-validation P01 | 5 min | 3 tasks | 3 files |
 | Phase 02.1-admin-qr-scanner-enhancement-inserted P01 | 2 min | 1 tasks | 2 files |
 | Phase 02.1-admin-qr-scanner-enhancement-inserted P02 | 5 min | 2 tasks | 2 files |
+| Phase 04-production-readiness-fixes P05 | 5min | 1 tasks | 2 files |
 
 ## Session Notes
 
@@ -228,7 +230,7 @@ Research completed 2026-02-16. Key findings:
 **Roadmap Status:** Complete, 3 phases derived from 18 v1 requirements
 **Coverage:** 100% (18/18 requirements mapped)
 **Last Executed:** Plan 01-05 — Transactional email system with Resend and React Email
-**Stopped At:** Completed 02.1-02-PLAN.md
+**Stopped At:** Completed 04-05-PLAN.md
 
 ### Plan 06 Complete
 

@@ -119,9 +119,9 @@ Plans:
 **Plans:** 3 plans created
 
 Plans:
-- [x] 02.1-01-PLAN.md — Install html5-qrcode library dependency
-- [x] 02.1-02-PLAN.md — Create QRScanner component and ScannerContainer wrapper
-- [ ] 02.1-03-PLAN.md — Integrate scanner into admin/scan page with continuous scanning mode (human-verify)
+- [x] 02.1-01-PLAN.md — Install html5-qrcode library dependency + token parsing unit tests
+- [x] 02.1-02-PLAN.md — Create QRScanner component with HTTPS checks, debouncing, responsive sizing
+- [ ] 02.1-03-PLAN.md — Integrate scanner into admin/scan page with loading state (human-verify)
 
 ---
 
@@ -151,7 +151,8 @@ Plans:
 | 1. Core MVP | 7/7 | Complete   | 2026-03-23 |
 | 1.1 Coffee Ordering Pivot | 4/4 | Complete | 2026-03-25 |
 | 2. Launch & Validation | 1/3 | In Progress|  |
-| 2.1 Admin QR Scanner | 0/3 | Planned | — |
+| 2.1 Admin QR Scanner | 2/3 | Planned | — |
+| 4. Production Readiness | 0/5 | Planned | — |
 | 3. Competitive Advantages | 0/1 | Not started | — |
 
 ---
@@ -167,6 +168,28 @@ Plans:
 - Phase 3: 0 requirements (post-feedback enhancements)
 
 All v1 requirements mapped. No orphans.
+
+### Phase 4: Production Readiness Fixes
+
+**Goal:** Fix critical and high-priority issues identified in cross-AI codebase reviews before production deployment. This phase addresses bugs, security concerns, and data integrity problems. No new features — reactive bug fixing only.
+**Requirements**: D-01 through D-10 (CONTEXT.md locked decisions)
+**Depends on:** Phase 2.1
+**Plans:** 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Token Store Migration: Migrate auth tokens from in-memory to PostgreSQL (D-01)
+- [ ] 04-02-PLAN.md — Payment Status Updates: Stripe webhook + Pay-on-Pickup + Status History (D-02, D-03, D-09)
+- [ ] 04-03-PLAN.md — Error Handling: Fix prefix mismatch + API error standardization (D-04, D-05)
+- [ ] 04-04-PLAN.md — QR Verification: Completed order handling + Rate limiting + Case normalization (D-06, D-07, D-08)
+- [x] 04-05-PLAN.md — Database Index Optimization: Add stripeSessionId index, remove qrTokenExpiresAt index (D-10)
+
+**Success Criteria:**
+1. **Admin can log in from any serverless instance** — Magic links work across different Vercel instances
+2. **Payment status is accurate** — Stripe orders show PAID with paidAt/paidAmount, Pay-on-pickup orders auto-set PAID when completed
+3. **Users see helpful error messages** — Stock errors show specific product names, not generic "Order failed"
+4. **Staff can distinguish order states** — Scanning completed orders shows "Order already completed" instead of confusing error
+5. **Rate limiting prevents attacks** — verify-qr endpoint limited to 30 requests/min per IP
+6. **Database indexes optimized** — Webhook queries fast, unnecessary index removed
 
 ---
 
