@@ -1,72 +1,95 @@
-# ShopSeeds
+# Essa Cafe
 
 ## What This Is
 
-An online webstore for a local business selling small house plants and seed packets. Customers browse a catalog, add items to a cart, check out, and pick up their order locally. The store is managed by a solo owner with a small catalog (under 30 products).
+An online ordering system for Essa Cafe, a local coffee shop. Customers browse a menu of hot drinks, iced drinks, specialty beverages, and food items, place orders online, and pick up at the shop. The store is managed by a solo owner with a focused menu (~15 items).
 
 ## Core Value
 
-Customers can browse plants and seeds online, place an order, and pick it up — replacing informal selling with a professional storefront.
+Customers can order ahead and pick up fresh coffee without waiting in line — replacing phone orders with a modern mobile-first ordering experience.
 
 ## Requirements
 
-### Validated
-
-Validated in Phase 01 (core-mvp), human-verified 2026-03-22:
+### Validated (v1.0 MVP — Shipped 2026-03-26)
 
 - [x] Product catalog with photos, names, prices, and descriptions
-- [x] Shopping cart and checkout flow
-- [x] Online payment option (card/mobile) — Stripe Checkout
+- [x] Category filtering (Hot Drinks, Iced Drinks, Specialty, Food)
+- [x] Product availability toggle (isAvailable) instead of stock tracking
+- [x] Search products by name
+- [x] Pickup location and hours
+- [x] Shopping cart with localStorage persistence
+- [x] Guest checkout (name, email, phone)
+- [x] Stripe online payment
 - [x] Pay-on-pickup option
-- [x] Order management for the owner (view, update status)
-- [x] Product management for the owner (add, edit, remove)
-- [x] Customer order confirmation and status
-- [x] Modern, bold visual design — earthy/modern (forest green + cream)
-- [x] Transactional emails — customer confirmation + admin notification
+- [x] Order confirmation emails (customer + admin notification)
 - [x] Magic link admin authentication
+- [x] Admin product management (add, edit, toggle availability)
+- [x] Admin order management and status updates
+- [x] QR code generation for order pickup
+- [x] Mobile QR scanning for staff
+- [x] Rate limiting on verification endpoints
+- [x] Payment status tracking (paidAt, paidAmount)
+- [x] Order status history logging
+- [x] Modern, bold visual design (espresso/caramel/cream palette)
+- [x] Fully responsive on mobile/tablet
 
-### Active
+### Active (Future Milestones)
 
-(All Phase 01 requirements validated — awaiting Phase 02 deployment)
+- Client-side shop hours validation (server-side only currently)
+- Order status history UI display (logged but not shown)
+- Payment status in customer emails
 
 ### Out of Scope
 
-- Delivery/shipping — pickup only for v1, delivery planned for later
-- Customer accounts/login — not needed for a small local store initially
-- Accessories (pots, soil, tools) — plants and seeds only
+- Delivery/shipping — pickup only
+- Customer accounts/login — guest checkout only
 - Multi-staff access — solo operation
-- Detailed plant care info — basic product info only for v1
+- Table service — pickup counter only
 
 ## Context
 
-- Brand new business, no existing website or e-commerce presence
-- Local customer base (city/region)
-- Small catalog under 30 items: house plants and seed packets
-- Solo-managed — needs a simple admin interface, not a complex CMS
-- Pickup-only fulfillment simplifies logistics significantly
-- Owner wants a modern, bold aesthetic — not the typical soft/earthy plant store look
+- Coffee shop ordering system (pivoted from plant store in Phase 01.1)
+- Local customer base
+- Focused menu: ~15 items across 4 categories
+- Solo-managed — simple admin interface
+- Pickup-only fulfillment
+- Mobile-first design priority
 
 ## Constraints
 
-- **Catalog size**: Under 30 products initially — architecture should be simple, not enterprise-grade
-- **Solo admin**: One person manages everything — admin UX must be efficient
-- **Pickup only**: No shipping/delivery logic in v1
-- **Payment flexibility**: Must support both online payment and pay-on-pickup
+- **Catalog size**: ~15 coffee/food items — simple architecture
+- **Solo admin**: One person manages everything
+- **Pickup only**: No delivery logic
+- **Payment flexibility**: Stripe + pay-on-pickup required
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Pickup-only for v1 | Simplifies fulfillment, delivery added later | Implemented |
-| Basic product info | Name/photo/price/description sufficient for small catalog | Implemented |
-| No customer accounts | Reduces friction for buyers, solo owner doesn't need CRM | Implemented |
-| Modern & bold design | Owner's preference, differentiates from typical plant stores | Implemented — earthy/modern (forest green + cream) |
-| Magic link admin auth | No password management for solo owner | Implemented — Auth.js v5 + Resend |
-| Stripe + pay-on-pickup | Dual payment paths for local pickup flow | Implemented |
+| Pickup-only | Simplifies fulfillment for counter service | ✓ Shipped |
+| isAvailable toggle | Coffee items don't need quantity tracking | ✓ Shipped |
+| No customer accounts | Reduces friction for quick orders | ✓ Shipped |
+| Espresso/caramel palette | Warm coffee aesthetic | ✓ Shipped |
+| Magic link auth | No password management for solo owner | ✓ Shipped |
+| PostgreSQL token store | Works across serverless instances | ✓ Shipped v1.0 |
+| Stripe + pay-on-pickup | Dual payment for local flow | ✓ Shipped |
+| QR code pickup | Contactless order handoff | ✓ Shipped |
+| Rate limiting | Prevent QR endpoint abuse | ✓ Shipped |
 
 ## Current State
 
-Phase 01.1 (coffee-ordering-pivot) complete — codebase fully rebranded to Essa Cafe. Schema migrated to `isAvailable` model, espresso/caramel palette live, admin panel and store updated, coffee seed data seeded (4 categories, 14 products). Build clean. Ready for Phase 02 (launch & validation / deployment).
+**v1.0 MVP SHIPPED** — 2026-03-26
+
+5 phases complete (22 plans, 24 tasks):
+- Core MVP (catalog, cart, checkout, admin)
+- Coffee Ordering Pivot (rebrand, schema migration)
+- Launch & Validation (pre-launch fixes)
+- Admin QR Scanner (mobile scanning)
+- Production Readiness (token store, payment tracking, rate limiting)
+
+All E2E flows verified working. 18/19 requirements satisfied (1 intentionally redesigned). 90% integration health.
+
+**Next milestone:** Feature requests based on customer feedback
 
 ---
-*Last updated: 2026-03-23 — Phase 01.1 complete*
+*Last updated: 2026-03-26 — v1.0 milestone shipped*
