@@ -2,7 +2,9 @@
 
 A Next.js storefront for pickup orders. Customers browse products, pay online (Stripe) or on pickup, receive order confirmation emails with QR codes for quick pickup, and track order status in real-time. Admin panel with mobile-responsive design for managing orders, products, and categories.
 
-**Tech stack:** Next.js 15 · Prisma · PostgreSQL (Neon) · Stripe · Gmail SMTP · NextAuth v5 · Tailwind CSS
+**Status:** v1.0 MVP Released (March 2026)
+
+**Tech stack:** Next.js 15 · Prisma · PostgreSQL (Neon) · Stripe · Gmail SMTP · NextAuth v5 · Tailwind CSS · Zustand
 
 ---
 
@@ -11,7 +13,7 @@ A Next.js storefront for pickup orders. Customers browse products, pay online (S
 - **Pickup Orders** — Browse products, add to cart, choose pickup time
 - **Payment Options** — Pay online via Stripe or cash/card on pickup
 - **QR Code Pickup** — Customers receive a unique QR code in their confirmation email for quick order pickup verification
-- **Order Status Tracking** — Real-time order status updates with customer lookup page
+- **Order Status Tracking** — Real-time order status updates with customer lookup page and status history
 - **Mobile-Responsive Admin** — Manage orders, products, and categories from any device
 - **Email Notifications** — Automated order confirmations and status updates via Gmail SMTP
 - **Multi-Currency Support** — Configurable currency (default: AED)
