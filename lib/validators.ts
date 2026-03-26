@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const checkoutContactSchema = z.object({
   guestName: z.string().min(2, "Name must be at least 2 characters").max(100),
-  guestEmail: z.string().email("Invalid email address"),
+  guestEmail: z
+    .string()
+    .email("Invalid email address")
+    .transform((email) => email.toLowerCase().trim()),
   guestPhone: z.string().min(10, "Phone must be at least 10 digits").optional().or(z.literal("")),
   guestNotes: z.string().max(500).optional(),
   pickupTime: z.string().optional(),
@@ -33,7 +36,10 @@ export const orderStatusSchema = z.enum(["NEW", "READY", "COMPLETED", "CANCELLED
 
 export const orderLookupSchema = z.object({
   orderNumber: z.string().min(1, "Order number is required"),
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .transform((email) => email.toLowerCase().trim()),
 });
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;

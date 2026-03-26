@@ -4,23 +4,20 @@ import { prisma } from "./db";
 
 /**
  * Generates the next order number in sequence (ORD-001, ORD-002, etc.)
+ * Uses a database-level counter to prevent race conditions
  */
 async function generateOrderNumber(tx: Prisma.TransactionClient): Promise<string> {
-  // Get the latest order number
-  const lastOrder = await tx.order.findFirst({
-    orderBy: { createdAt: "desc" },
-    select: { orderNumber: true },
-  });
+  // Use raw query to get and increment counter atomically
+  // This prevents race conditions between concurrent transactions
+  const result = await tx.$queryRaw<{ next_val: number }[]>`
+    INSERT INTO "OrderNumberCounter" ("id", "lastNumber")
+    VALUES (1, 1)
+    ON CONFLICT ("id")
+    DO UPDATE SET "lastNumber" = "OrderNumberCounter"."lastNumber" + 1
+    RETURNING "lastNumber" as next_val
+  `;
 
-  let nextNumber = 1;
-
-  if (lastOrder?.orderNumber) {
-    // Extract number from existing format (e.g., "ORD-123" -> 123)
-    const match = lastOrder.orderNumber.match(/\d+/);
-    if (match) {
-      nextNumber = parseInt(match[0], 10) + 1;
-    }
-  }
+  const nextNumber = result[0]?.next_val ?? 1;
 
   // Format: ORD-001, ORD-002, etc.
   return `ORD-${String(nextNumber).padStart(3, "0")}`;
@@ -62,7 +59,7 @@ export async function createOrderAtomically(
         return sum + Number(priceSnapshot[item.productId]) * item.quantity;
       }, 0);
 
-      // 3. Generate simple order number
+      // 3. Generate order number using atomic counter
       const orderNumber = await generateOrderNumber(tx);
 
       // 4. Create order + items
