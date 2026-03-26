@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
+import { Prisma } from "@prisma/client";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { createOrderAtomically } from "@/lib/orders";
@@ -76,6 +77,16 @@ export async function POST(request: NextRequest) {
       await prisma.order.update({
         where: { id: order.id },
         data: { stripeSessionId: session.id },
+      });
+
+      // Update payment status to PAID after successful Stripe payment
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: "PAID",
+          paidAt: new Date(),
+          paidAmount: new Prisma.Decimal(session.amount_total! / 100),
+        },
       });
 
       console.log("Order created from webhook:", order.orderNumber);
