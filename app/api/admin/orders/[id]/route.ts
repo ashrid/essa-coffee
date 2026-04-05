@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { orderStatusSchema } from "@/lib/validators";
-import { generateQRToken, sendOrderReadyEmail, type OrderWithItems } from "@/lib/email";
+import {
+  generateQRToken,
+  sendOrderReadyEmail,
+  sendOrderStatusUpdateEmail,
+  type OrderWithItems,
+} from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -111,6 +116,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         status: newStatus,
         changedBy: session.user?.email ?? "unknown",
       },
+    });
+  }
+
+  if (newStatus === "CANCELLED" || newStatus === "REFUNDED") {
+    sendOrderStatusUpdateEmail(currentOrder as OrderWithItems, newStatus).catch((error) => {
+      console.error(`Failed to send ${newStatus.toLowerCase()} email:`, error);
     });
   }
 

@@ -42,8 +42,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse metadata
-    const { guestName, guestEmail, guestPhone, guestNotes, items } =
-      session.metadata!;
+    const metadata = session.metadata;
+    if (!metadata?.guestName || !metadata?.guestEmail || !metadata?.items) {
+      console.error("Missing required metadata in Stripe session:", session.id);
+      return new Response("Missing metadata", { status: 400 });
+    }
+    const { guestName, guestEmail, guestPhone, guestNotes, items } = metadata;
     const parsedItems = JSON.parse(items) as Array<{
       productId: string;
       quantity: number;
@@ -73,16 +77,10 @@ export async function POST(request: NextRequest) {
         priceSnapshot
       );
 
-      // Update stripeSessionId on order
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { stripeSessionId: session.id },
-      });
-
-      // Update payment status to PAID after successful Stripe payment
       await prisma.order.update({
         where: { id: order.id },
         data: {
+          stripeSessionId: session.id,
           paymentStatus: "PAID",
           paidAt: new Date(),
           paidAmount: new Prisma.Decimal(session.amount_total! / 100),

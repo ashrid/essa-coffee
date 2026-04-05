@@ -42,6 +42,13 @@ export async function POST(request: NextRequest) {
 
     const { guestName, guestEmail, guestPhone, guestNotes, pickupTime, paymentMethod, items } = result.data;
 
+    if (paymentMethod === "PAY_ON_PICKUP" && !pickupTime) {
+      return NextResponse.json(
+        { error: "Pickup time required", code: ErrorCodes.INVALID_REQUEST, message: "Please select a pickup time" },
+        { status: 400 }
+      );
+    }
+
     // Validate pickup time for PAY_ON_PICKUP
     if (paymentMethod === "PAY_ON_PICKUP" && pickupTime) {
       const selectedDate = new Date(pickupTime);
