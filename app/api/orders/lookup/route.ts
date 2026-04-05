@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
       pickupTime: order.pickupTime?.toISOString() || null,
       items: order.items.map((item) => ({
         quantity: item.quantity,
-        price: item.price.toString(),
+        price: Number(item.price),
         productName: item.product.name,
       })),
-      total: order.total.toString(),
+      total: Number(order.total),
       paymentMethod: order.paymentMethod,
       createdAt: order.createdAt.toISOString(),
       // Include QR token for READY orders so customer can see their pickup QR code

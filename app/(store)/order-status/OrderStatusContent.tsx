@@ -16,7 +16,7 @@ type OrderStatus = 'NEW' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
 interface OrderItem {
   quantity: number;
-  price: string;
+  price: number;
   productName: string;
 }
 
@@ -29,7 +29,7 @@ interface OrderData {
   guestNotes: string | null;
   pickupTime: string | null;
   items: OrderItem[];
-  total: string;
+  total: number;
   paymentMethod: 'STRIPE' | 'PAY_ON_PICKUP';
   createdAt: string;
   qrToken: string | null;
@@ -282,7 +282,7 @@ export function OrderStatusContent({ shopAddress, hoursSummary }: OrderStatusCon
                   {item.productName} × {item.quantity}
                 </span>
                 <span className="font-medium text-forest-900">
-                  {formatPrice(parseFloat(item.price) * item.quantity)}
+                  {formatPrice(item.price * item.quantity)}
                 </span>
               </div>
             ))}
@@ -290,7 +290,7 @@ export function OrderStatusContent({ shopAddress, hoursSummary }: OrderStatusCon
           <div className="border-t border-cream-200 mt-4 pt-4 flex justify-between">
             <span className="font-semibold text-forest-900">Total</span>
             <span className="font-bold text-lg text-forest-900">
-              {formatPrice(parseFloat(order.total))}
+              {formatPrice(order.total)}
             </span>
           </div>
         </div>

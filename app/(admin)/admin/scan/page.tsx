@@ -13,7 +13,7 @@ type OrderStatus = 'NEW' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
 interface OrderItem {
   quantity: number;
-  price: string;
+  price: number;
   productName: string;
 }
 
@@ -24,7 +24,7 @@ interface VerifiedOrder {
   guestName: string;
   guestEmail: string;
   items: OrderItem[];
-  total: string;
+  total: number;
   paymentMethod: string;
 }
 
@@ -286,7 +286,7 @@ function ScanPageContent() {
               <div className="text-right">
                 <p className="text-sm text-forest-600 mb-1">Total</p>
                 <p className="text-xl font-bold text-forest-900">
-                  {formatPrice(parseFloat(order.total))}
+                  {formatPrice(order.total)}
                 </p>
               </div>
             </div>
@@ -332,7 +332,7 @@ function ScanPageContent() {
                     {item.productName} × {item.quantity}
                   </span>
                   <span className="font-medium text-forest-900">
-                    {formatPrice(parseFloat(item.price) * item.quantity)}
+                    {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -340,7 +340,7 @@ function ScanPageContent() {
             <div className="mt-3 pt-3 border-t border-forest-200 flex justify-between">
               <span className="font-semibold text-forest-900">Total</span>
               <span className="font-bold text-lg text-forest-900">
-                {formatPrice(parseFloat(order.total))}
+                {formatPrice(order.total)}
               </span>
             </div>
           </div>

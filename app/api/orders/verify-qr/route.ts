@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         code: "ALREADY_COMPLETED",
         status: order.status,
         alreadyCompleted: true,
-      }, { status: 200 });
+      }, { status: 409 });
     }
 
     // Verify order status is READY
@@ -99,10 +99,10 @@ export async function GET(request: NextRequest) {
       guestEmail: order.guestEmail,
       items: order.items.map((item) => ({
         quantity: item.quantity,
-        price: item.price.toString(),
+        price: Number(item.price),
         productName: item.product.name,
       })),
-      total: order.total.toString(),
+      total: Number(order.total),
       paymentMethod: order.paymentMethod,
     });
   } catch (error) {
