@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { categorySchema } from "@/lib/validators";
 import { generateSlug } from "@/lib/utils";
+import { z } from "zod";
 
 export async function GET() {
   const session = await auth();
@@ -64,10 +65,12 @@ export async function DELETE(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { id } = body;
-  if (!id) {
-    return NextResponse.json({ error: "Category id required" }, { status: 400 });
+  const deleteSchema = z.object({ id: z.string().cuid() });
+  const parsed = deleteSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid category ID" }, { status: 400 });
   }
+  const { id } = parsed.data;
 
   // Check product count
   const productCount = await prisma.product.count({
