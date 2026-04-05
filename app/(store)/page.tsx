@@ -12,6 +12,7 @@ export default async function HomePage() {
   // Fetch featured products (in stock only)
   const featuredProducts = await prisma.product.findMany({
     where: {
+      deletedAt: null,
       isFeatured: true,
       isAvailable: true,
     },
@@ -22,6 +23,7 @@ export default async function HomePage() {
 
   // Fetch all products for the catalog section
   const allProducts = await prisma.product.findMany({
+    where: { deletedAt: null },
     include: { category: true },
     orderBy: { createdAt: "desc" },
   });

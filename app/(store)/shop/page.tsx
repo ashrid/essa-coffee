@@ -28,9 +28,10 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   // Build where clause for products
   const where: {
+    deletedAt: null;
     category?: { slug: string };
     isAvailable?: boolean;
-  } = {};
+  } = { deletedAt: null };
 
   if (categorySlug) {
     where.category = { slug: categorySlug };
