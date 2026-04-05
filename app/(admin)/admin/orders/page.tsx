@@ -40,10 +40,10 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/orders");
+      const res = await fetch("/api/admin/orders?limit=100");
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
-      setOrders(data);
+      setOrders(data.orders);
     } catch {
       toast.error("Failed to load orders");
     } finally {
