@@ -120,13 +120,16 @@ export function CheckoutStepPayment({
   const pickupWarningMessage = process.env.NEXT_PUBLIC_PICKUP_WARNING_MESSAGE ||
     "Please note our business hours. We'll prepare your order for your selected time.";
 
-  // Group time slots into morning, afternoon, evening
+  // Filter out elapsed time slots and group into morning, afternoon, evening
   const groupedSlots = useMemo(() => {
     const morning: string[] = [];
     const afternoon: string[] = [];
     const evening: string[] = [];
 
     timeSlots.forEach((time) => {
+      // Hide elapsed slots entirely
+      if (!isTimeSlotAvailable(time, true)) return;
+
       const hour = parseInt(time.split(":")[0]);
       if (hour < 12) {
         morning.push(time);
@@ -139,6 +142,8 @@ export function CheckoutStepPayment({
 
     return { morning, afternoon, evening };
   }, [timeSlots]);
+
+  const hasAvailableSlots = groupedSlots.morning.length > 0 || groupedSlots.afternoon.length > 0 || groupedSlots.evening.length > 0;
 
   const handleSubmit = () => {
     if (selectedMethod === "PAY_ON_PICKUP") {
@@ -347,114 +352,81 @@ export function CheckoutStepPayment({
             {/* Time Picker Panel */}
             {isTimePickerOpen && (
               <>
-                {/* Backdrop to close on click outside */}
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setIsTimePickerOpen(false)}
                 />
-                <div className="absolute z-50 w-full mt-2 bg-white border border-cream-200 rounded-lg shadow-lg max-h-[320px] overflow-hidden">
-                  {timeSlots.length === 0 ? (
-                    <div className="p-4 text-center text-forest-600">
-                      Shop is closed today
+                <div className="absolute z-50 w-full mt-1 bg-white border border-cream-200 rounded-lg shadow-lg max-h-[280px] overflow-y-auto">
+                  {!hasAvailableSlots ? (
+                    <div className="p-4 text-center text-forest-600 text-sm">
+                      No available time slots today
                     </div>
                   ) : (
-                    <div className="p-3 space-y-4 overflow-y-auto max-h-[320px]">
-                      {/* Morning */}
+                    <>
                       {groupedSlots.morning.length > 0 && (
-                        <div>
-                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                        <>
+                          <div className="sticky top-0 bg-cream-50 px-3 py-1.5 text-xs font-medium text-forest-400 uppercase tracking-wider border-b border-cream-100">
                             Morning
-                          </p>
-                          <div className="grid grid-cols-3 gap-2">
-                            {groupedSlots.morning.map((time) => {
-                              const isAvailable = isTimeSlotAvailable(time, true);
-                              const isSelected = selectedTime === time;
-                              return (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  disabled={!isAvailable}
-                                  onClick={() => isAvailable && handleTimeSelect(time)}
-                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
-                                    isSelected
-                                      ? "bg-forest-600 text-white"
-                                      : isAvailable
-                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
-                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  }`}
-                                >
-                                  {formatTimeDisplay(time)}
-                                </button>
-                              );
-                            })}
                           </div>
-                        </div>
+                          {groupedSlots.morning.map((time) => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => handleTimeSelect(time)}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                                selectedTime === time
+                                  ? "bg-forest-600 text-white"
+                                  : "text-forest-700 hover:bg-forest-50"
+                              }`}
+                            >
+                              {formatTimeDisplay(time)}
+                            </button>
+                          ))}
+                        </>
                       )}
-
-                      {/* Afternoon */}
                       {groupedSlots.afternoon.length > 0 && (
-                        <div>
-                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                        <>
+                          <div className="sticky top-0 bg-cream-50 px-3 py-1.5 text-xs font-medium text-forest-400 uppercase tracking-wider border-b border-cream-100">
                             Afternoon
-                          </p>
-                          <div className="grid grid-cols-3 gap-2">
-                            {groupedSlots.afternoon.map((time) => {
-                              const isAvailable = isTimeSlotAvailable(time, true);
-                              const isSelected = selectedTime === time;
-                              return (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  disabled={!isAvailable}
-                                  onClick={() => isAvailable && handleTimeSelect(time)}
-                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
-                                    isSelected
-                                      ? "bg-forest-600 text-white"
-                                      : isAvailable
-                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
-                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  }`}
-                                >
-                                  {formatTimeDisplay(time)}
-                                </button>
-                              );
-                            })}
                           </div>
-                        </div>
+                          {groupedSlots.afternoon.map((time) => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => handleTimeSelect(time)}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                                selectedTime === time
+                                  ? "bg-forest-600 text-white"
+                                  : "text-forest-700 hover:bg-forest-50"
+                              }`}
+                            >
+                              {formatTimeDisplay(time)}
+                            </button>
+                          ))}
+                        </>
                       )}
-
-                      {/* Evening */}
                       {groupedSlots.evening.length > 0 && (
-                        <div>
-                          <p className="text-xs font-medium text-forest-400 uppercase tracking-wider mb-2 px-2">
+                        <>
+                          <div className="sticky top-0 bg-cream-50 px-3 py-1.5 text-xs font-medium text-forest-400 uppercase tracking-wider border-b border-cream-100">
                             Evening
-                          </p>
-                          <div className="grid grid-cols-3 gap-2">
-                            {groupedSlots.evening.map((time) => {
-                              const isAvailable = isTimeSlotAvailable(time, true);
-                              const isSelected = selectedTime === time;
-                              return (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  disabled={!isAvailable}
-                                  onClick={() => isAvailable && handleTimeSelect(time)}
-                                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
-                                    isSelected
-                                      ? "bg-forest-600 text-white"
-                                      : isAvailable
-                                      ? "bg-cream-50 text-forest-700 hover:bg-forest-100"
-                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  }`}
-                                >
-                                  {formatTimeDisplay(time)}
-                                </button>
-                              );
-                            })}
                           </div>
-                        </div>
+                          {groupedSlots.evening.map((time) => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => handleTimeSelect(time)}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                                selectedTime === time
+                                  ? "bg-forest-600 text-white"
+                                  : "text-forest-700 hover:bg-forest-50"
+                              }`}
+                            >
+                              {formatTimeDisplay(time)}
+                            </button>
+                          ))}
+                        </>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               </>
