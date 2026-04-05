@@ -10,10 +10,10 @@ async function generateOrderNumber(tx: Prisma.TransactionClient): Promise<string
   // Use raw query to get and increment counter atomically
   // This prevents race conditions between concurrent transactions
   const result = await tx.$queryRaw<{ next_val: number }[]>`
-    INSERT INTO "order_number_counter" ("id", "lastNumber")
-    VALUES (1, 1)
+    INSERT INTO "order_number_counter" ("id", "lastNumber", "updatedAt")
+    VALUES (1, 1, NOW())
     ON CONFLICT ("id")
-    DO UPDATE SET "lastNumber" = "order_number_counter"."lastNumber" + 1
+    DO UPDATE SET "lastNumber" = "order_number_counter"."lastNumber" + 1, "updatedAt" = NOW()
     RETURNING "lastNumber" as next_val
   `;
 
