@@ -31,8 +31,14 @@ export default function EditProductPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/admin/products/${id}`).then((r) => r.json()),
-      fetch("/api/admin/categories").then((r) => r.json()),
+      fetch(`/api/admin/products/${id}`).then((r) => {
+        if (!r.ok) throw new Error("Failed to load");
+        return r.json();
+      }),
+      fetch("/api/admin/categories").then((r) => {
+        if (!r.ok) throw new Error("Failed to load");
+        return r.json();
+      }),
     ])
       .then(([prod, cats]) => {
         setProduct(prod);

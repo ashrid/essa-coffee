@@ -18,7 +18,10 @@ export default function NewProductPage() {
 
   useEffect(() => {
     fetch("/api/admin/categories")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load");
+        return r.json();
+      })
       .then(setCategories)
       .catch(() => toast.error("Failed to load categories"));
   }, []);
