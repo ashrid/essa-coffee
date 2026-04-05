@@ -8,38 +8,6 @@ const resendQRSchema = z.object({
   orderId: z.string().cuid("Invalid order ID"),
 });
 
-// Type guard to ensure order matches OrderWithItems interface
-function isOrderWithItems(order: unknown): order is OrderWithItems {
-  if (typeof order !== "object" || order === null) return false;
-
-  const o = order as Record<string, unknown>;
-
-  return (
-    typeof o.id === "string" &&
-    typeof o.orderNumber === "string" &&
-    typeof o.guestName === "string" &&
-    typeof o.guestEmail === "string" &&
-    (o.guestPhone === null || typeof o.guestPhone === "string") &&
-    (o.guestNotes === null || typeof o.guestNotes === "string") &&
-    (o.paymentMethod === "STRIPE" || o.paymentMethod === "PAY_ON_PICKUP") &&
-    (typeof o.total === "object" || typeof o.total === "number") &&
-    (o.pickupTime === null || o.pickupTime instanceof Date) &&
-    Array.isArray(o.items) &&
-    o.items.every(
-      (item: unknown) =>
-        typeof item === "object" &&
-        item !== null &&
-        typeof (item as Record<string, unknown>).id === "string" &&
-        typeof (item as Record<string, unknown>).quantity === "number" &&
-        (typeof (item as Record<string, unknown>).price === "object" ||
-          typeof (item as Record<string, unknown>).price === "number") &&
-        typeof (item as Record<string, unknown>).product === "object" &&
-        (item as Record<string, unknown>).product !== null &&
-        typeof ((item as Record<string, unknown>).product as Record<string, unknown>).name === "string"
-    )
-  );
-}
-
 /**
  * POST /api/orders/resend-qr
  * Admin-only endpoint to regenerate and resend QR code for an order
@@ -107,15 +75,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Send order ready email with new QR code
-    // Validate order shape before casting
-    if (!isOrderWithItems(order)) {
-      return NextResponse.json(
-        { error: "Order data validation failed" },
-        { status: 500 }
-      );
-    }
-
-    await sendOrderReadyEmail(order, token);
+    await sendOrderReadyEmail(order as OrderWithItems, token);
 
     return NextResponse.json({
       success: true,
