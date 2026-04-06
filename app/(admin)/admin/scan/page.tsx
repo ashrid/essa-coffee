@@ -57,10 +57,13 @@ function ScanPageContent() {
 
   // Reset to scanner for next order
   const resetScan = useCallback(() => {
+    router.replace('/admin/scan');
     setScannedToken(null);
     setOrder(null);
     setError(null);
-  }, []);
+    setIsCompleted(false);
+    setIsLoading(false);
+  }, [router]);
 
   // Verify QR token on mount
   useEffect(() => {
