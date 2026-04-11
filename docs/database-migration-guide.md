@@ -61,15 +61,20 @@ SQL
 vercel --prod
 ```
 
-The build command (`npm run build`) includes:
+The build command (`npm run build`) now only generates Prisma Client and builds Next.js:
 ```json
-"build": "prisma generate && prisma migrate deploy && next build"
+"build": "prisma generate && next build"
 ```
 
-This automatically:
+Production migrations should be applied explicitly before deployment:
+
+```bash
+npm run db:migrate:deploy
+```
+
+The build step now:
 1. Generates Prisma Client
-2. Deploys pending migrations
-3. Builds the Next.js application
+2. Builds the Next.js application
 
 ## Key Commands Reference
 
@@ -97,6 +102,9 @@ npx prisma db pull
 
 ### Deployment
 ```bash
+# Apply migrations first
+npm run db:migrate:deploy
+
 # Deploy to production
 vercel --prod
 
@@ -147,9 +155,9 @@ npx prisma migrate reset --force
 - New orders get ORD-XXX format automatically
 
 ### Build Process
-- Vercel build includes `prisma migrate deploy`
-- Migrations are applied automatically during build
-- If migrations fail, the build fails (prevents broken deployments)
+- Vercel build should not mutate the production schema
+- Apply migrations explicitly before deployment
+- If migrations fail, stop the release before running `vercel --prod`
 
 ## Troubleshooting
 
@@ -197,5 +205,5 @@ If issues occur:
 
 1. **Check first, migrate second** - Always verify production schema before assuming migrations are needed
 2. **Schema drift happens** - Index naming differences are common and usually harmless
-3. **Build-time migration** - Vercel's build process handles migrations automatically
+3. **Separate migration from build** - apply schema changes before deployment rather than during `next build`
 4. **Environment variables** - Use `vercel env pull` to get production DATABASE_URL for local inspection

@@ -639,7 +639,7 @@ GOOGLE_MAPS_EMBED_URL=https://www.google.com/maps/embed?...
 npm install
 cp .env.example .env.local  # Fill in values
 npx prisma generate
-npx prisma db push
+npx prisma migrate dev
 npm run dev
 ```
 

@@ -51,7 +51,7 @@ Fill in `.env.local` — see [Environment Variables](#environment-variables) bel
 
 ```bash
 npx prisma generate
-npx prisma db push
+npx prisma migrate dev
 ```
 
 **4. Run the dev server**
@@ -107,6 +107,7 @@ In your Vercel project → **Settings → Environment Variables**, add each vari
 | `STRIPE_WEBHOOK_SECRET` | See Step 5 below |
 | `SHOP_ADDRESS_LINE1` | Your shop name (e.g. `Essa Cafe`) |
 | `SHOP_ADDRESS_LINE2` | Your shop address (e.g. `Dubai, UAE`) |
+| `SHOP_TIMEZONE` | Shop timezone in IANA format (e.g. `Asia/Dubai`) |
 | `SHOP_PHONE` | Your contact number |
 | `GOOGLE_MAPS_EMBED_URL` | Google Maps → Share → Embed a map → copy the `src` URL |
 | `NEXT_PUBLIC_PICKUP_WARNING_MESSAGE` | *(Optional)* Custom message shown when customers select pickup times outside business hours |
@@ -120,19 +121,19 @@ In your Vercel project → **Settings → Environment Variables**, add each vari
 5. After saving, click **Reveal** under Signing secret
 6. Copy the `whsec_...` value → add as `STRIPE_WEBHOOK_SECRET` in Vercel
 
-### Step 6 — Deploy
+### Step 6 — Run database migrations
+
+Before each production deployment, apply committed migrations explicitly:
+
+```bash
+npm run db:migrate:deploy
+```
+
+### Step 7 — Deploy
 
 Go to Vercel → **Deployments** → click **Redeploy** (or push a new commit to trigger auto-deploy).
 
-### Step 7 — Run database migrations
-
-After first deploy, run this once to set up the database schema:
-
-```bash
-npx prisma db push
-```
-
-Or connect to the Neon console and run the schema manually.
+Do not use `prisma db push` against production when this repo already has committed migrations.
 
 ---
 
