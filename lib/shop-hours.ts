@@ -286,6 +286,26 @@ export function getHoursSummary(): string {
   return parts.join(", ");
 }
 
+export function getHoursSummaryLines(): [string, string] {
+  const weekday = getShopHours(1);
+  const saturday = getShopHours(6);
+  const sunday = getShopHours(0);
+
+  const weekdayLine = weekday.isOpen
+    ? `Weekdays ${formatTimeCompact(weekday.open)}–${formatTimeCompact(weekday.close)}`
+    : "Weekdays Closed";
+
+  const saturdayLabel = saturday.isOpen
+    ? `Saturday ${formatTimeCompact(saturday.open)}–${formatTimeCompact(saturday.close)}`
+    : "Saturday Closed";
+
+  const sundayLabel = sunday.isOpen
+    ? `Sunday ${formatTimeCompact(sunday.open)}–${formatTimeCompact(sunday.close)}`
+    : "Sunday Closed";
+
+  return [weekdayLine, `${saturdayLabel} | ${sundayLabel}`];
+}
+
 function formatTimeCompact(time24: string): string {
   const [hours, minutes] = time24.split(":").map(Number);
   const period = hours >= 12 ? "pm" : "am";

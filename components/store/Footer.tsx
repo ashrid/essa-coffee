@@ -1,8 +1,8 @@
-import { getHoursSummary } from "@/lib/shop-hours";
+import { getHoursSummaryLines } from "@/lib/shop-hours";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const hoursSummary = getHoursSummary();
+  const [weekdayHours, weekendHours] = getHoursSummaryLines();
 
   return (
     <footer className="bg-forest-600 text-cream-50 px-6 py-10">
@@ -15,7 +15,10 @@ export default function Footer() {
 
           <div>
             <h4 className="font-semibold mb-2">Hours</h4>
-            <p className="text-cream-200 text-sm">{hoursSummary}</p>
+            <div className="text-cream-200 text-sm space-y-1">
+              <p>{weekdayHours}</p>
+              <p>{weekendHours}</p>
+            </div>
           </div>
 
           <div>
