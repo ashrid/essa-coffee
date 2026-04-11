@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' blob: data: https://i.imgur.com https://imgur.com https://*.imgur.com https://images.unsplash.com https://*.cloudinary.com",
               "font-src 'self'",
               "connect-src 'self'",
-              "frame-src 'self'",
+              "frame-src 'self' https://www.google.com https://google.com",
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'none'",
