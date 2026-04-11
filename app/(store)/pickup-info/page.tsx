@@ -46,8 +46,8 @@ export default function PickupInfoPage() {
                 key={row.day}
                 className={index < hours.length - 1 ? "border-b border-cream-100" : ""}
               >
-                <td className="py-2 font-medium">{row.day}</td>
-                <td className={`py-2 text-right ${row.hours === "Closed" ? "text-sage-500" : ""}`}>
+                <td className="w-1/3 py-3 pr-4 font-medium align-top">{row.day}</td>
+                <td className={`py-3 text-right align-top ${row.hours === "Closed" ? "text-sage-500" : ""}`}>
                   {row.hours}
                 </td>
               </tr>

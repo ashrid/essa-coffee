@@ -306,9 +306,9 @@ export function getDetailedHours(): Array<{ day: string; hours: string }> {
 
   // Weekdays (Mon-Fri)
   if (weekdayHours) {
-    result.push({ day: "Monday – Friday", hours: weekdayHours });
+    result.push({ day: "Weekdays", hours: weekdayHours });
   } else {
-    result.push({ day: "Monday – Friday", hours: "Closed" });
+    result.push({ day: "Weekdays", hours: "Closed" });
   }
 
   // Saturday
