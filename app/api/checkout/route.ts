@@ -4,7 +4,13 @@ import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { createOrderAtomically } from "@/lib/orders";
 import { checkoutContactSchema } from "@/lib/validators";
-import { getShopHours } from "@/lib/shop-hours";
+import {
+  buildPickupDateInShopTime,
+  getShopHoursConfigFromEnv,
+  isPickupTimeAtLeastMinutesAhead,
+  isShopOpenAt,
+  isWithinShopHoursWithConfig,
+} from "@/lib/shop-hours";
 import {
   sendOrderConfirmation,
   sendAdminNewOrderNotification,
@@ -41,6 +47,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { guestName, guestEmail, guestPhone, guestNotes, pickupTime, paymentMethod, items } = result.data;
+    const now = new Date();
+    const shopHoursConfig = getShopHoursConfigFromEnv();
+    let normalizedPickupTime = pickupTime;
 
     if (paymentMethod === "PAY_ON_PICKUP" && !pickupTime) {
       return NextResponse.json(
@@ -51,16 +60,29 @@ export async function POST(request: NextRequest) {
 
     // Validate pickup time for PAY_ON_PICKUP
     if (paymentMethod === "PAY_ON_PICKUP" && pickupTime) {
-      const selectedDate = new Date(pickupTime);
-      const minDate = new Date();
-      minDate.setMinutes(minDate.getMinutes() + 10);
+      if (!isWithinShopHoursWithConfig(now, pickupTime, shopHoursConfig)) {
+        return NextResponse.json(
+          {
+            error: "Invalid pickup time",
+            code: ErrorCodes.INVALID_REQUEST,
+            message: "Pickup time must be during shop hours",
+          },
+          { status: 400 }
+        );
+      }
 
-      if (selectedDate < minDate) {
+      if (!isPickupTimeAtLeastMinutesAhead(now, pickupTime, 10, shopHoursConfig.timezone)) {
         return NextResponse.json(
           { error: "Invalid pickup time", code: ErrorCodes.INVALID_REQUEST, message: "Pickup time must be at least 10 minutes from now" },
           { status: 400 }
         );
       }
+
+      normalizedPickupTime = buildPickupDateInShopTime(
+        now,
+        pickupTime,
+        shopHoursConfig.timezone
+      ).toISOString();
     }
 
     // Fetch products and prices from DB (never trust client prices)
@@ -83,21 +105,13 @@ export async function POST(request: NextRequest) {
 
     // Check if shop is open for online payments (STRIPE)
     if (paymentMethod === "STRIPE") {
-      const now = new Date();
-      const shopHours = getShopHours(now.getDay());
-
-      if (!shopHours.isOpen) {
+      if (!isShopOpenAt(now, shopHoursConfig)) {
         return NextResponse.json(
-          { error: "Shop closed", code: ErrorCodes.SHOP_CLOSED, message: "We are currently closed. Please try again during business hours." },
-          { status: 400 }
-        );
-      }
-
-      // Check if current time is within business hours
-      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      if (currentTime < shopHours.open || currentTime > shopHours.close) {
-        return NextResponse.json(
-          { error: "Shop closed", code: ErrorCodes.SHOP_CLOSED, message: `We are currently closed. Our hours today are ${shopHours.open}-${shopHours.close}.` },
+          {
+            error: "Shop closed",
+            code: ErrorCodes.SHOP_CLOSED,
+            message: "We are currently closed. Please try again during business hours.",
+          },
           { status: 400 }
         );
       }
@@ -106,7 +120,15 @@ export async function POST(request: NextRequest) {
     // PAY_ON_PICKUP path - create order immediately
     if (paymentMethod === "PAY_ON_PICKUP") {
       const order = await createOrderAtomically(
-        { guestName, guestEmail, guestPhone, guestNotes, paymentMethod, items, pickupTime },
+        {
+          guestName,
+          guestEmail,
+          guestPhone,
+          guestNotes,
+          paymentMethod,
+          items,
+          pickupTime: normalizedPickupTime,
+        },
         priceSnapshot
       );
 
@@ -136,7 +158,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // STRIPE path - create checkout session, order created by webhook
+    // STRIPE path - create checkout session and persist a pending order immediately
     const lineItems = items.map((item) => {
       const product = products.find((p) => p.id === item.productId)!;
       return {
@@ -169,6 +191,27 @@ export async function POST(request: NextRequest) {
       success_url: `${appUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/cart`,
     });
+
+    try {
+      await createOrderAtomically(
+        {
+          guestName,
+          guestEmail,
+          guestPhone,
+          guestNotes,
+          paymentMethod,
+          paymentStatus: "PENDING",
+          stripeSessionId: session.id,
+          items,
+        },
+        priceSnapshot
+      );
+    } catch (error) {
+      await getStripe().checkout.sessions
+        .expire(session.id)
+        .catch(() => undefined);
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,

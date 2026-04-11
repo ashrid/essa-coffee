@@ -3,12 +3,19 @@ import Stripe from "stripe";
 import { Prisma } from "@prisma/client";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
-import { createOrderAtomically } from "@/lib/orders";
+import { createOrderAtomicallyWithTransaction } from "@/lib/orders";
 import {
   sendOrderConfirmation,
   sendAdminNewOrderNotification,
   OrderWithItems,
 } from "@/lib/email";
+
+function isUniqueConstraintError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -30,16 +37,6 @@ export async function POST(request: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-
-    // Idempotency: check if order with stripeSessionId already exists
-    const existing = await prisma.order.findFirst({
-      where: { stripeSessionId: session.id },
-    });
-
-    if (existing) {
-      console.log("Order already processed for session:", session.id);
-      return new Response("Already processed", { status: 200 });
-    }
 
     // Parse metadata
     const metadata = session.metadata;
@@ -64,34 +61,76 @@ export async function POST(request: NextRequest) {
     );
 
     try {
-      // Create order atomically
-      const order = await createOrderAtomically(
-        {
-          guestName,
-          guestEmail,
-          guestPhone: guestPhone || null,
-          guestNotes: guestNotes || null,
-          paymentMethod: "STRIPE",
-          items: parsedItems,
+      const paidAt = new Date();
+      const paidAmount = new Prisma.Decimal((session.amount_total ?? 0) / 100);
+
+      const result = await prisma.$transaction(
+        async (tx) => {
+          try {
+            await tx.stripeWebhookEvent.create({
+              data: {
+                id: event.id,
+                eventType: event.type,
+                stripeSessionId: session.id,
+              },
+            });
+          } catch (error) {
+            if (isUniqueConstraintError(error)) {
+              return { orderId: null, shouldSendEmails: false };
+            }
+            throw error;
+          }
+
+          const existingOrder = await tx.order.findUnique({
+            where: { stripeSessionId: session.id },
+          });
+
+          if (existingOrder) {
+            if (existingOrder.paymentStatus === "PAID") {
+              return { orderId: existingOrder.id, shouldSendEmails: false };
+            }
+
+            const updatedOrder = await tx.order.update({
+              where: { id: existingOrder.id },
+              data: {
+                paymentStatus: "PAID",
+                paidAt,
+                paidAmount,
+              },
+            });
+
+            return { orderId: updatedOrder.id, shouldSendEmails: true };
+          }
+
+          const createdOrder = await createOrderAtomicallyWithTransaction(
+            tx,
+            {
+              guestName,
+              guestEmail,
+              guestPhone: guestPhone || null,
+              guestNotes: guestNotes || null,
+              paymentMethod: "STRIPE",
+              paymentStatus: "PAID",
+              stripeSessionId: session.id,
+              paidAt,
+              paidAmount,
+              items: parsedItems,
+            },
+            priceSnapshot
+          );
+
+          return { orderId: createdOrder.id, shouldSendEmails: true };
         },
-        priceSnapshot
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       );
 
-      await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          stripeSessionId: session.id,
-          paymentStatus: "PAID",
-          paidAt: new Date(),
-          paidAmount: new Prisma.Decimal(session.amount_total! / 100),
-        },
-      });
-
-      console.log("Order created from webhook:", order.orderNumber);
+      if (!result.orderId) {
+        return new Response("Already processed", { status: 200 });
+      }
 
       // Fetch full order with items for email
       const orderWithItems = (await prisma.order.findUniqueOrThrow({
-        where: { id: order.id },
+        where: { id: result.orderId },
         include: {
           items: {
             include: {
@@ -101,11 +140,13 @@ export async function POST(request: NextRequest) {
         },
       })) as OrderWithItems;
 
-      // Send emails - await so Vercel doesn't kill the function before SMTP finishes
-      await Promise.allSettled([
-        sendOrderConfirmation(orderWithItems),
-        sendAdminNewOrderNotification(orderWithItems),
-      ]);
+      if (result.shouldSendEmails) {
+        // Send emails - await so Vercel doesn't kill the function before SMTP finishes
+        await Promise.allSettled([
+          sendOrderConfirmation(orderWithItems),
+          sendAdminNewOrderNotification(orderWithItems),
+        ]);
+      }
     } catch (error) {
       console.error("Failed to create order from webhook:", error);
       // Return 500 so Stripe retries

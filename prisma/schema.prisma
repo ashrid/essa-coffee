@@ -52,7 +52,7 @@ model Order {
   status          OrderStatus   @default(NEW)
   paymentMethod   PaymentMethod @default(PAY_ON_PICKUP)
   paymentStatus   PaymentStatus @default(PENDING)
-  stripeSessionId String?
+  stripeSessionId String?       @unique
   total           Decimal       @db.Decimal(10, 2)
   paidAt          DateTime?
   paidAmount      Decimal?      @db.Decimal(10, 2)
@@ -68,9 +68,19 @@ model Order {
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@index([guestEmail])
-  // Note: stripeSessionId has @unique which provides an index for webhook queries
   // Note: qrTokenExpiresAt index removed - expiration check follows qrToken unique lookup
   @@map("orders")
+}
+
+model StripeWebhookEvent {
+  id              String   @id
+  eventType       String
+  stripeSessionId String
+  createdAt       DateTime @default(now())
+
+  @@index([stripeSessionId])
+  @@index([createdAt])
+  @@map("stripe_webhook_events")
 }
 
 model OrderItem {

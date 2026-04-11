@@ -30,6 +30,7 @@ export default async function OrderConfirmationPage({
     total: { toString: () => string };
     status: string;
     paymentMethod: string;
+    paymentStatus: string;
     items: {
       quantity: number;
       price: { toString: () => string };
@@ -62,8 +63,13 @@ export default async function OrderConfirmationPage({
       },
     });
 
-    // If order not found yet, try to fetch session and wait
-    if (!order) {
+    const stripeOrderStillProcessing =
+      order &&
+      order.paymentMethod === "STRIPE" &&
+      order.paymentStatus !== "PAID";
+
+    // If the Stripe order is missing or still pending, check the session and wait
+    if (!order || stripeOrderStillProcessing) {
       try {
         const session = await getStripe().checkout.sessions.retrieve(
           params.session_id
