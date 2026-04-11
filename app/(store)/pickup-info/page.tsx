@@ -3,13 +3,14 @@ export const metadata = {
   description: "Find our location, hours, and pickup instructions.",
 };
 
+import { resolveGoogleMapsEmbedUrl } from "@/lib/google-maps-embed";
 import { getDetailedHours } from "@/lib/shop-hours";
 
 export default function PickupInfoPage() {
   const addressLine1 = process.env.SHOP_ADDRESS_LINE1 || "Essa Cafe";
   const addressLine2 = process.env.SHOP_ADDRESS_LINE2 || "Dubai, UAE";
   const phone = process.env.SHOP_PHONE || "";
-  const mapEmbedUrl = process.env.GOOGLE_MAPS_EMBED_URL || "";
+  const mapEmbedUrl = resolveGoogleMapsEmbedUrl(process.env.GOOGLE_MAPS_EMBED_URL);
   const hours = getDetailedHours();
 
   return (
