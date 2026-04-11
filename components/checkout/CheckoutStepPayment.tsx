@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CartItem } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
-import { getShopHoursFromConfig, isWithinShopHoursWithConfig, ShopHoursConfig } from "@/lib/shop-hours";
+import {
+  getShopDateTimeParts,
+  getShopHoursFromConfig,
+  isPickupTimeAtLeastMinutesAhead,
+  isShopOpenAt,
+  isWithinShopHoursWithConfig,
+  ShopHoursConfig,
+} from "@/lib/shop-hours";
 
 interface CheckoutStepPaymentProps {
   contactData: {
@@ -30,8 +37,8 @@ interface CheckoutStepPaymentProps {
 }
 
 // Generate time slots in 5-minute increments from shop open to close
-function generateTimeSlotsForDay(date: Date, shopHours: ShopHoursConfig): string[] {
-  const { open, close, isOpen } = getShopHoursFromConfig(date.getDay(), shopHours);
+function generateTimeSlotsForDay(day: number, shopHours: ShopHoursConfig): string[] {
+  const { open, close, isOpen } = getShopHoursFromConfig(day, shopHours);
   if (!isOpen || open === "closed" || close === "closed") {
     return [];
   }
@@ -66,25 +73,6 @@ function formatTimeDisplay(time24: string): string {
   return `${hours12}:${String(minutes).padStart(2, "0")} ${period}`;
 }
 
-// Get minimum pickup time (10 minutes from now)
-function getMinimumPickupTime(): Date {
-  const minTime = new Date();
-  minTime.setMinutes(minTime.getMinutes() + 10);
-  return minTime;
-}
-
-// Check if a time slot is available (at least 10 min from now for today)
-function isTimeSlotAvailable(timeString: string, isToday: boolean): boolean {
-  if (!isToday) return true;
-
-  const [hours, minutes] = timeString.split(":").map(Number);
-  const slotTime = new Date();
-  slotTime.setHours(hours, minutes, 0, 0);
-
-  const minTime = getMinimumPickupTime();
-  return slotTime >= minTime;
-}
-
 export function CheckoutStepPayment({
   cartItems,
   subtotal,
@@ -100,21 +88,20 @@ export function CheckoutStepPayment({
   const [pickupError, setPickupError] = useState<string>("");
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
 
-  const today = useMemo(() => new Date(), []);
-  const todayDay = today.getDay();
-  const timeSlots = useMemo(() => generateTimeSlotsForDay(today, shopHours), [today, shopHours]);
-  const todayHours = useMemo(() => getShopHoursFromConfig(todayDay, shopHours), [shopHours, todayDay]);
-  const shopOpen = useMemo(() => {
-    if (!todayHours.isOpen) return false;
-    const currentTime = `${String(today.getHours()).padStart(2, "0")}:${String(today.getMinutes()).padStart(2, "0")}`;
-    return currentTime >= todayHours.open && currentTime <= todayHours.close;
-  }, [today, todayHours]);
+  const now = useMemo(() => new Date(), []);
+  const shopNow = useMemo(
+    () => getShopDateTimeParts(now, shopHours.timezone),
+    [now, shopHours.timezone]
+  );
+  const timeSlots = useMemo(() => generateTimeSlotsForDay(shopNow.day, shopHours), [shopHours, shopNow.day]);
+  const todayHours = useMemo(() => getShopHoursFromConfig(shopNow.day, shopHours), [shopHours, shopNow.day]);
+  const shopOpen = useMemo(() => isShopOpenAt(now, shopHours), [now, shopHours]);
 
   // Check if selected time is outside business hours
   const isOutsideHours = useMemo(() => {
     if (!selectedTime) return false;
-    return !isWithinShopHoursWithConfig(today, selectedTime, shopHours);
-  }, [selectedTime, shopHours, today]);
+    return !isWithinShopHoursWithConfig(now, selectedTime, shopHours);
+  }, [selectedTime, shopHours, now]);
 
   // Get warning message from env var
   const pickupWarningMessage = process.env.NEXT_PUBLIC_PICKUP_WARNING_MESSAGE ||
@@ -128,7 +115,7 @@ export function CheckoutStepPayment({
 
     timeSlots.forEach((time) => {
       // Hide elapsed slots entirely
-      if (!isTimeSlotAvailable(time, true)) return;
+      if (!isPickupTimeAtLeastMinutesAhead(now, time, 10, shopHours.timezone)) return;
 
       const hour = parseInt(time.split(":")[0]);
       if (hour < 12) {
@@ -141,7 +128,7 @@ export function CheckoutStepPayment({
     });
 
     return { morning, afternoon, evening };
-  }, [timeSlots]);
+  }, [now, shopHours.timezone, timeSlots]);
 
   const hasAvailableSlots = groupedSlots.morning.length > 0 || groupedSlots.afternoon.length > 0 || groupedSlots.evening.length > 0;
 
@@ -152,20 +139,13 @@ export function CheckoutStepPayment({
         return;
       }
 
-      // Validate 10-minute buffer for today
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      const pickupDate = new Date();
-      pickupDate.setHours(hours, minutes, 0, 0);
-
-      const minDate = new Date();
-      minDate.setMinutes(minDate.getMinutes() + 10);
-      if (pickupDate < minDate) {
+      if (!isPickupTimeAtLeastMinutesAhead(new Date(), selectedTime, 10, shopHours.timezone)) {
         setPickupError("Pickup time must be at least 10 minutes from now");
         return;
       }
 
       setPickupError("");
-      onSubmit(selectedMethod, pickupDate.toISOString());
+      onSubmit(selectedMethod, selectedTime);
     } else {
       onSubmit(selectedMethod);
     }
@@ -448,7 +428,7 @@ export function CheckoutStepPayment({
           {selectedTime && !pickupError && (
             <p className="text-sm text-forest-600">
               You selected:{" "}
-              <strong>Today at {formatTimeDisplay(selectedTime)}</strong>
+              <strong>Today at {formatTimeDisplay(selectedTime)} ({shopHours.timezone})</strong>
             </p>
           )}
         </div>
@@ -485,4 +465,3 @@ export function CheckoutStepPayment({
     </div>
   );
 }
-

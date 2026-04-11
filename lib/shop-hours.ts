@@ -14,6 +14,116 @@ export interface ShopHoursConfig {
   weekday: string;
   saturday: string;
   sunday: string;
+  timezone: string;
+}
+
+const DEFAULT_SHOP_TIMEZONE = "Asia/Dubai";
+const WEEKDAY_MAP: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+function getDefaultShopTimeZone(): string {
+  return process.env.SHOP_TIMEZONE || DEFAULT_SHOP_TIMEZONE;
+}
+
+function getFormatterParts(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return Object.fromEntries(
+    formatter
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+}
+
+function timeStringToMinutes(timeString: string): number {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+    hour: "2-digit",
+  });
+
+  const offsetPart = formatter
+    .formatToParts(date)
+    .find((part) => part.type === "timeZoneName")?.value;
+
+  if (!offsetPart) {
+    return 0;
+  }
+
+  const match = offsetPart.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
+  if (!match) {
+    return 0;
+  }
+
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2]);
+  const minutes = Number(match[3] || "0");
+  return sign * (hours * 60 + minutes);
+}
+
+export function getShopDateTimeParts(date: Date, timeZone = getDefaultShopTimeZone()) {
+  const parts = getFormatterParts(date, timeZone);
+
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`,
+    day: WEEKDAY_MAP[parts.weekday] ?? 0,
+  };
+}
+
+export function buildPickupDateInShopTime(
+  referenceDate: Date,
+  timeString: string,
+  timeZone = getDefaultShopTimeZone()
+): Date {
+  const { date } = getShopDateTimeParts(referenceDate, timeZone);
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
+  const offsetMinutes = getTimeZoneOffsetMinutes(utcGuess, timeZone);
+
+  return new Date(utcGuess.getTime() - offsetMinutes * 60 * 1000);
+}
+
+export function isPickupTimeAtLeastMinutesAhead(
+  referenceDate: Date,
+  timeString: string,
+  minimumMinutes: number,
+  timeZone = getDefaultShopTimeZone()
+): boolean {
+  const { time } = getShopDateTimeParts(referenceDate, timeZone);
+  return timeStringToMinutes(timeString) - timeStringToMinutes(time) >= minimumMinutes;
+}
+
+export function getShopHoursConfigFromEnv(): ShopHoursConfig {
+  return {
+    weekday: process.env.SHOP_HOURS_WEEKDAY || "09:00-18:00",
+    saturday: process.env.SHOP_HOURS_SATURDAY || "09:00-17:00",
+    sunday: process.env.SHOP_HOURS_SUNDAY || "closed",
+    timezone: getDefaultShopTimeZone(),
+  };
 }
 
 /**
@@ -77,13 +187,7 @@ function convertTo24Hour(timeStr: string): string {
  * @param day - 0 = Sunday, 6 = Saturday
  */
 export function getShopHours(day: number): ShopHours {
-  const weekdayHours = parseHours(process.env.SHOP_HOURS_WEEKDAY);
-  const saturdayHours = parseHours(process.env.SHOP_HOURS_SATURDAY);
-  const sundayHours = parseHours(process.env.SHOP_HOURS_SUNDAY);
-
-  if (day === 0) return sundayHours;
-  if (day === 6) return saturdayHours;
-  return weekdayHours;
+  return getShopHoursFromConfig(day, getShopHoursConfigFromEnv());
 }
 
 /**
@@ -103,7 +207,8 @@ export function getShopHoursFromConfig(day: number, config: ShopHoursConfig): Sh
  * Time format: "HH:MM" (24-hour)
  */
 export function isWithinShopHours(date: Date, timeString: string): boolean {
-  const { open, close, isOpen } = getShopHours(date.getDay());
+  const { day } = getShopDateTimeParts(date);
+  const { open, close, isOpen } = getShopHours(day);
   if (!isOpen) return false;
   return timeString >= open && timeString <= close;
 }
@@ -118,9 +223,17 @@ export function isWithinShopHoursWithConfig(
   timeString: string,
   config: ShopHoursConfig
 ): boolean {
-  const { open, close, isOpen } = getShopHoursFromConfig(date.getDay(), config);
+  const { day } = getShopDateTimeParts(date, config.timezone);
+  const { open, close, isOpen } = getShopHoursFromConfig(day, config);
   if (!isOpen) return false;
   return timeString >= open && timeString <= close;
+}
+
+export function isShopOpenAt(date: Date, config: ShopHoursConfig): boolean {
+  const { time, day } = getShopDateTimeParts(date, config.timezone);
+  const { open, close, isOpen } = getShopHoursFromConfig(day, config);
+  if (!isOpen) return false;
+  return time >= open && time <= close;
 }
 
 /**
@@ -184,8 +297,6 @@ function formatTimeCompact(time24: string): string {
  * Get detailed hours for each day (for pickup info page)
  */
 export function getDetailedHours(): Array<{ day: string; hours: string }> {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
   // Group consecutive days with same hours
   const result: Array<{ day: string; hours: string }> = [];
 
