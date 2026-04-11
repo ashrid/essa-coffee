@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { sendAdminOrderStatusEmails } from "@/lib/admin-order-emails";
 import { prisma } from "@/lib/db";
 import { orderStatusSchema } from "@/lib/validators";
 import {
   generateQRToken,
-  sendOrderReadyEmail,
-  sendOrderStatusUpdateEmail,
   type OrderWithItems,
 } from "@/lib/email";
 
@@ -119,19 +118,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     });
   }
 
-  if (newStatus === "CANCELLED" || newStatus === "REFUNDED") {
-    sendOrderStatusUpdateEmail(currentOrder as OrderWithItems, newStatus).catch((error) => {
-      console.error(`Failed to send ${newStatus.toLowerCase()} email:`, error);
-    });
-  }
-
-  // Send order ready email if status changed to READY
-  if (isChangingToReady && qrToken) {
-    // Fire and forget - don't block the response on email sending
-    sendOrderReadyEmail(currentOrder as OrderWithItems, qrToken).catch((error) => {
-      console.error("Failed to send order ready email:", error);
-    });
-  }
+  await sendAdminOrderStatusEmails({
+    previousStatus,
+    newStatus,
+    qrToken,
+    order: currentOrder as OrderWithItems,
+  });
 
   return NextResponse.json(order);
 }
