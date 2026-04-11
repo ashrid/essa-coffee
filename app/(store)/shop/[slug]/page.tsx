@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import ProductImageCarousel from "@/components/store/ProductImageCarousel";
 import AvailabilityBadge from "@/components/store/StockBadge";
 import RelatedProducts from "@/components/store/RelatedProducts";
+import { sanitizeRichText, stripHtmlToPlainText } from "@/lib/sanitize-rich-text";
 import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "./AddToCartButton";
 
@@ -41,14 +42,16 @@ export async function generateMetadata({
     };
   }
 
+  const plainDescription = stripHtmlToPlainText(product.description);
+
   return {
     title: `${product.name} | Essa Cafe`,
     description:
-      product.description?.slice(0, 160) ||
+      plainDescription.slice(0, 160) ||
       `Shop ${product.name} at Essa Cafe. Local pickup available.`,
     openGraph: {
       title: product.name,
-      description: product.description?.slice(0, 160),
+      description: plainDescription.slice(0, 160),
       images: product.images[0] ? [{ url: product.images[0] }] : undefined,
     },
   };
@@ -82,6 +85,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const isUnavailable = !product.isAvailable;
   const relatedProducts = product.category.products;
+  const sanitizedDescription = sanitizeRichText(product.description);
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
@@ -136,14 +140,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
           />
 
           {/* Description */}
-          {product.description && (
+          {sanitizedDescription && (
             <div className="pt-6 border-t border-cream-200">
               <h2 className="text-lg font-semibold text-forest-900 mb-3">
                 Description
               </h2>
               <div
                 className="prose prose-sm max-w-none text-forest-700"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
               />
             </div>
           )}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { sanitizeRichText } from "@/lib/sanitize-rich-text";
+import { getCategoryStorefrontPaths, revalidateStorefrontPaths } from "@/lib/store-revalidation";
 import { categorySchema } from "@/lib/validators";
 import { generateSlug } from "@/lib/utils";
 
@@ -42,14 +44,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   if (description !== undefined) {
-    updateData.description = description ?? null;
+    updateData.description = sanitizeRichText(description);
   }
+
+  const categoryProductSlugs = await prisma.product.findMany({
+    where: { categoryId: id, deletedAt: null },
+    select: { slug: true },
+  });
 
   const category = await prisma.category.update({
     where: { id },
     data: updateData,
     include: { _count: { select: { products: true } } },
   });
+
+  revalidateStorefrontPaths(
+    getCategoryStorefrontPaths(categoryProductSlugs.map((product) => product.slug))
+  );
 
   return NextResponse.json(category);
 }

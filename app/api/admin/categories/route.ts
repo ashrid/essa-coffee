@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { sanitizeRichText } from "@/lib/sanitize-rich-text";
+import { getCategoryStorefrontPaths, revalidateStorefrontPaths } from "@/lib/store-revalidation";
 import { categorySchema } from "@/lib/validators";
 import { generateSlug } from "@/lib/utils";
 import { z } from "zod";
@@ -51,9 +53,11 @@ export async function POST(req: NextRequest) {
   }
 
   const category = await prisma.category.create({
-    data: { name, slug, description: description ?? null },
+    data: { name, slug, description: sanitizeRichText(description) },
     include: { _count: { select: { products: true } } },
   });
+
+  revalidateStorefrontPaths(getCategoryStorefrontPaths([]));
 
   return NextResponse.json(category, { status: 201 });
 }
@@ -84,5 +88,8 @@ export async function DELETE(req: NextRequest) {
   }
 
   await prisma.category.delete({ where: { id } });
+
+  revalidateStorefrontPaths(getCategoryStorefrontPaths([]));
+
   return NextResponse.json({ success: true });
 }

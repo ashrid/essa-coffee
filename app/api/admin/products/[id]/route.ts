@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { productSchema } from "@/lib/validators";
+import { sanitizeRichText } from "@/lib/sanitize-rich-text";
+import { getProductStorefrontPaths, revalidateStorefrontPaths } from "@/lib/store-revalidation";
 import { generateSlug } from "@/lib/utils";
-import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 
 type Params = { params: Promise<{ id: string }> };
@@ -44,7 +45,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   const data = parsed.data;
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
+  if (!existingProduct) {
+    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  }
+
   const updateData: Record<string, unknown> = { ...data };
+
+  if (data.description !== undefined) {
+    updateData.description = sanitizeRichText(data.description);
+  }
 
   // Re-generate slug if name changed
   if (data.name) {
@@ -64,9 +78,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     include: { category: true },
   });
 
-  revalidatePath("/shop");
-  revalidatePath("/");
-  revalidatePath(`/shop/${product.slug}`, "page");
+  revalidateStorefrontPaths(
+    getProductStorefrontPaths({
+      previousSlug: existingProduct.slug,
+      nextSlug: product.slug,
+    })
+  );
 
   return NextResponse.json(product);
 }
@@ -93,10 +110,20 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     );
   }
 
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
+  if (!existingProduct) {
+    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  }
+
   await prisma.product.delete({ where: { id } });
 
-  revalidatePath("/shop");
-  revalidatePath("/");
+  revalidateStorefrontPaths(
+    getProductStorefrontPaths({ previousSlug: existingProduct.slug })
+  );
 
   return NextResponse.json({ success: true });
 }

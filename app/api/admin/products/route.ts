@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { productSchema } from "@/lib/validators";
+import { sanitizeRichText } from "@/lib/sanitize-rich-text";
+import { getProductStorefrontPaths, revalidateStorefrontPaths } from "@/lib/store-revalidation";
 import { generateSlug } from "@/lib/utils";
-import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 
 export async function GET() {
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: data.name,
       slug,
-      description: data.description ?? null,
+      description: sanitizeRichText(data.description),
       price: data.price,
       isAvailable: data.isAvailable,
       isFeatured: data.isFeatured,
@@ -58,8 +59,7 @@ export async function POST(req: NextRequest) {
     include: { category: true },
   });
 
-  revalidatePath("/shop");
-  revalidatePath("/");
+  revalidateStorefrontPaths(getProductStorefrontPaths({ nextSlug: product.slug }));
 
   return NextResponse.json(product, { status: 201 });
 }
